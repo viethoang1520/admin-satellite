@@ -133,10 +133,10 @@ const Home = () => {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold tracking-tight">
-                Post Management
+                Quản lí bài viết
               </h1>
               <p className="text-muted-foreground">
-                Manage and publish your posts to satellite sites.
+                Quản lý và xuất bản bài viết của bạn lên các trang vệ tinh.
               </p>
             </div>
             <Button
@@ -144,69 +144,34 @@ const Home = () => {
               className="flex items-center gap-1"
             >
               <Plus className="h-4 w-4" />
-              <span>Create Post</span>
+              <span>Tạo bài viết</span>
             </Button>
           </div>
 
           <div className="grid gap-6">
-            {/* Summary Cards */}
             <div className="grid gap-4 md:grid-cols-3">
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium">
-                    Total Posts
+                    Tổng số bài viết
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{posts.length}</div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Active posts
+                    Bài viết đang hoạt động
                   </p>
                 </CardContent>
               </Card>
-              {/* <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Published Posts
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {posts.filter((p) => p.status === "published").length}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {Math.round(
-                      (posts.filter((p) => p.status === "published").length /
-                        posts.length) *
-                        100
-                    )}
-                    % of total posts
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Draft Posts
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {posts.filter((p) => p.status === "draft").length}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Ready to publish
-                  </p>
-                </CardContent>
-              </Card> */}
             </div>
 
             {/* Post Table */}
             <Card id="posts-section">
               <CardHeader>
-                <CardTitle>Posts</CardTitle>
+                <CardTitle>Bài viết</CardTitle>
                 <CardDescription>
-                  Manage your posts and publish them to satellite sites.
+                  Quản lý bài viết của bạn và xuất bản chúng lên các trang vệ
+                  tinh.
                 </CardDescription>
               </CardHeader>
               <CardContent>

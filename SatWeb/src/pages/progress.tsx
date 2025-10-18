@@ -41,6 +41,7 @@ const ProgressPage = () => {
   const urls = post?.urls || [];
   // lấy getProgress
   const getProgress = postStore((state) => state.getProgress);
+  console.log("ProgressPage post:", getProgress);
   useEffect(() => {
     let interval: NodeJS.Timeout;
 

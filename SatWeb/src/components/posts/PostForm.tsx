@@ -218,8 +218,11 @@ const PostForm = ({
                       value={field.value}
                       onEditorChange={(newValue) => field.onChange(newValue)}
                       init={{
-                        height: 400,
+                        height: 600,
                         menubar: true,
+                        language: "vi",
+                        language_url:
+                          "https://cdn.tiny.cloud/1/no-api-key/tinymce/6/langs/vi.js",
                         plugins: [
                           "advlist",
                           "autolink",
@@ -236,9 +239,9 @@ const PostForm = ({
                           "insertdatetime",
                           "media",
                           "table",
-                          "paste",
                           "help",
                           "wordcount",
+                          "imagetools", // ✅ thêm để hỗ trợ resize/align trực tiếp
                         ],
                         toolbar:
                           "undo redo | formatselect | " +
@@ -256,8 +259,35 @@ const PostForm = ({
                         automatic_uploads: true,
                         images_reuse_filename: false,
                         file_picker_types: "image",
-                        content_style:
-                          "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
+
+                        // ⚙️ Thêm các tùy chọn giúp ảnh kéo thả & resize tự do
+                        image_advtab: true, // bật tab nâng cao trong popup chỉnh ảnh
+                        image_dimensions: true, // hiển thị width/height
+                        image_caption: true, // cho phép thêm chú thích
+                        object_resizing: true, // cho phép resize ảnh & bảng
+                        draggable_modal: true, // popup chỉnh ảnh có thể kéo
+                        paste_data_images: true, // cho phép dán ảnh từ clipboard
+                        resize_img_proportional: true, // giữ tỷ lệ khi resize ảnh
+
+                        // ⚙️ Context menu (chuột phải) chỉnh ảnh nhanh
+                        contextmenu: "link image imagetools table",
+
+                        // 🧩 Style hiển thị trong editor
+                        content_style: `
+      body { 
+        font-family: Helvetica, Arial, sans-serif; 
+        font-size: 14px; 
+      }
+      img {
+        max-width: 100%; 
+        height: auto; 
+        cursor: move; /* hiển thị biểu tượng kéo khi rê vào ảnh */
+      }
+      figure.image {
+        display: inline-block;
+        margin: 0 auto;
+      }
+    `,
                       }}
                     />
                   </FormControl>

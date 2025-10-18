@@ -35,11 +35,11 @@ const CreatePost = () => {
         <div className="mb-6">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              Create New Post
+              Tạo bài viết mới
             </h1>
             <p className="text-muted-foreground mt-2">
-              Create a new post with content and images to publish across your
-              satellite sites.
+              Tạo một bài viết mới với nội dung và hình ảnh để xuất bản trên các
+              trang vệ tinh của bạn.
             </p>
           </div>
         </div>

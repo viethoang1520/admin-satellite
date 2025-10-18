@@ -47,14 +47,7 @@ const Navigation = () => {
     },
   ];
   return (
-    <div
-      className="fixed top-6 left-1/2 -translate-x-1/2 
-             flex justify-between items-center 
-             w-[500px] px-4 py-2
-             bg-transparent backdrop-blur-lg
-             border-8 border-white/20 shadow-lg
-             rounded-2xl"
-    >
+    <div className="flex items-center justify-between h-16 px-4 bg-white border-b shadow-sm">
       <div className="flex items-center">
         <h1 className="text-xl font-bold">Auto Post</h1>
       </div>
