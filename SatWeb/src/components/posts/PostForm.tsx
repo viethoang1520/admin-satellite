@@ -79,8 +79,8 @@ const PostForm = ({
       autoClose: false,
     });
 
-    // navigate("/progress", { state: { post: { title: values.title } } });
-    // setUploading(true);
+    navigate("/progress", { state: { post: { title: values.title } } });
+    setUploading(true);
     try {
       await measureAsync("Tạo bài viết mới", async () => {
         const url = "http://localhost:3000/api/post";
@@ -216,13 +216,15 @@ const PostForm = ({
                     <Editor
                       apiKey="de7eylucb6hopyd8di8ruii0oabt5ylm78zmnnw9dgahz07g"
                       value={field.value}
-                      onEditorChange={(newValue) => field.onChange(newValue)}
+                      onEditorChange={(v) => field.onChange(v)}
                       init={{
                         height: 600,
                         menubar: true,
                         language: "vi",
                         language_url:
-                          "https://cdn.tiny.cloud/1/no-api-key/tinymce/6/langs/vi.js",
+                          "https://cdn.tiny.cloud/1/de7eylucb6hopyd8di8ruii0oabt5ylm78zmnnw9dgahz07g/tinymce/8/langs/vi.js",
+
+                        // ❌ bỏ imagetools
                         plugins: [
                           "advlist",
                           "autolink",
@@ -241,52 +243,41 @@ const PostForm = ({
                           "table",
                           "help",
                           "wordcount",
-                          "imagetools", // ✅ thêm để hỗ trợ resize/align trực tiếp
                         ],
+
                         toolbar:
-                          "undo redo | formatselect | " +
-                          "bold italic underline | alignleft aligncenter alignright alignjustify | " +
+                          "undo redo | formatselect | bold italic underline | " +
+                          "alignleft aligncenter alignright alignjustify | " +
                           "bullist numlist outdent indent | image media table | removeformat | help",
+
+                        // upload ảnh
                         file_picker_callback: file_picker_callback,
                         images_upload_handler: async (blobInfo) => {
                           const file = blobInfo.blob();
                           const urls = await uploadImageToMultipleWordPress(
                             file
                           );
-                          // chỉ hiển thị ảnh từ site đầu tiên
                           return urls[0].link;
                         },
+
                         automatic_uploads: true,
-                        images_reuse_filename: false,
                         file_picker_types: "image",
 
-                        // ⚙️ Thêm các tùy chọn giúp ảnh kéo thả & resize tự do
-                        image_advtab: true, // bật tab nâng cao trong popup chỉnh ảnh
-                        image_dimensions: true, // hiển thị width/height
-                        image_caption: true, // cho phép thêm chú thích
-                        object_resizing: true, // cho phép resize ảnh & bảng
-                        draggable_modal: true, // popup chỉnh ảnh có thể kéo
-                        paste_data_images: true, // cho phép dán ảnh từ clipboard
-                        resize_img_proportional: true, // giữ tỷ lệ khi resize ảnh
+                        // ✅ Tính năng chỉnh sửa ảnh vẫn hoạt động (dù không có imagetools)
+                        image_advtab: true,
+                        image_dimensions: true,
+                        image_caption: true,
+                        object_resizing: true, // cho phép resize ảnh và bảng
+                        paste_data_images: true,
+                        draggable_modal: true,
 
-                        // ⚙️ Context menu (chuột phải) chỉnh ảnh nhanh
-                        contextmenu: "link image imagetools table",
+                        // ✅ Context menu đơn giản
+                        contextmenu: "link image table",
 
-                        // 🧩 Style hiển thị trong editor
                         content_style: `
-      body { 
-        font-family: Helvetica, Arial, sans-serif; 
-        font-size: 14px; 
-      }
-      img {
-        max-width: 100%; 
-        height: auto; 
-        cursor: move; /* hiển thị biểu tượng kéo khi rê vào ảnh */
-      }
-      figure.image {
-        display: inline-block;
-        margin: 0 auto;
-      }
+      body { font-family: Helvetica, Arial, sans-serif; font-size: 14px; }
+      img { max-width: 100%; height: auto; cursor: move; }
+      figure.image { display: inline-block; margin: 0 auto; }
     `,
                       }}
                     />

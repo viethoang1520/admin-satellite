@@ -39,31 +39,25 @@ const ProgressPage = () => {
   const location = useLocation();
   const { post, title } = location.state || {};
   const urls = post?.urls || [];
+  console.log("post in progress page", post);
   // lấy getProgress
   const getProgress = postStore((state) => state.getProgress);
-  console.log("ProgressPage post:", getProgress);
   useEffect(() => {
     let interval: NodeJS.Timeout;
-
     const fetchProgress = async () => {
       const progress = await getProgress(post.title);
-      console.log("Fetched progress:", progress);
       setOverallProgress(progress ? progress * 100 : 0);
     };
 
-    // gọi ngay lần đầu
     fetchProgress();
 
-    // sau đó lặp lại mỗi 5s
     interval = setInterval(fetchProgress, 5000);
 
-    // cleanup khi component unmount
     return () => clearInterval(interval);
   }, [post.title]);
-  // Initialize with mock data
 
   useEffect(() => {
-    getPost(); // gọi API khi component mount
+    getPost();
   }, []);
 
   const handleParseUrl = (urls: string[]) => {
@@ -71,11 +65,14 @@ const ProgressPage = () => {
       const parsed = new URL(url);
       return `${parsed.protocol}//${parsed.hostname}`;
     });
-    console.log(baseUrls); // ["https://canho-bconssolary.com"]
     return baseUrls;
   };
-  React.useEffect(() => {
-    const urlsList = [`https://canho-bconssolary.com`];
+
+  useEffect(() => {
+    const urlsList = [
+      `https://canho-bconssolary.com`,
+      `https://aquacityvn.com/`,
+    ];
     const baseUrls = handleParseUrl(urls);
     console.log("post.urls", baseUrls[0]);
     const mockSites: Site[] = Array.from({ length: urls.length }, (_, i) => ({
