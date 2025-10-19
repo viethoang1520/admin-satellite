@@ -20,7 +20,7 @@ const trackProgress = async (req, res) => {
     if (!postTitle) {
       return res.status(400).json({ message: "Post title is required" });
     }
-    const numberOfApis = satelliteApis.length;
+    const numberOfApis = await Satellite.countDocuments();
     const post = await Post.findOne({
       title: postTitle,
     }).sort({ createdAt: -1 });

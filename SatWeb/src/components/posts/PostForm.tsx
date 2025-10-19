@@ -241,7 +241,7 @@ const PostForm = ({
                           "table",
                           "help",
                           "wordcount",
-                          "imagetools", // ✅ thêm để hỗ trợ resize/align trực tiếp
+                          // "imagetools", // ✅ thêm để hỗ trợ resize/align trực tiếp
                         ],
                         toolbar:
                           "undo redo | formatselect | " +
