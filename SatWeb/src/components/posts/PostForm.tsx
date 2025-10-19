@@ -243,6 +243,10 @@ const PostForm = ({
                           "table",
                           "help",
                           "wordcount",
+<<<<<<< HEAD
+=======
+                          // "imagetools", // ✅ thêm để hỗ trợ resize/align trực tiếp
+>>>>>>> 6e5120cf78f856f0d9a74095adf1bce027ad70ba
                         ],
 
                         toolbar:
