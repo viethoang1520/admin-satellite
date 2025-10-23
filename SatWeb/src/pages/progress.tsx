@@ -8,6 +8,7 @@ import postStore from "@/store/postStore";
 import { useSearchParams } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
+import urlsWp from "@/state/sites";
 
 type SiteStatus = "pending" | "in-progress" | "success" | "failed";
 
@@ -35,11 +36,9 @@ const ProgressPage = () => {
   const posts = postStore((state) => state.posts);
   const getPost = postStore((state) => state.getPost);
   const [searchParams] = useSearchParams();
-  const postTitle = searchParams.get("postTitle");
   const location = useLocation();
   const { post, title } = location.state || {};
-  const urls = post?.urls || [];
-  console.log("post in progress page", post);
+  const urls = urlsWp || [];
   // lấy getProgress
   const getProgress = postStore((state) => state.getProgress);
   useEffect(() => {
@@ -71,7 +70,7 @@ const ProgressPage = () => {
   useEffect(() => {
     const urlsList = [
       `https://canho-bconssolary.com`,
-      `https://aquacityvn.com/`,
+      `https://aquacityvn.com`,
     ];
     const baseUrls = handleParseUrl(urls);
     console.log("post.urls", baseUrls[0]);

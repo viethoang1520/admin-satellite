@@ -74,17 +74,21 @@ const PostForm = ({
   });
 
   const handleSubmit = async (values: FormValues) => {
-    console.log("Submitting form with values:", values);
     const toastId = toast.info("Đang tạo bài viết mới...", {
       autoClose: false,
     });
 
-    navigate("/progress", { state: { post: { title: values.title } } });
+    navigate("/progress", {
+      state: {
+        post: {
+          title: values.title,
+        },
+      },
+    });
     setUploading(true);
     try {
       await measureAsync("Tạo bài viết mới", async () => {
         const url = "http://localhost:3000/api/post";
-        console.log("url", url);
         const response = await fetch(url, {
           method: "POST",
           headers: {
@@ -106,7 +110,6 @@ const PostForm = ({
           urls: urls,
         };
 
-        console.log("Tạo bài viết thành công:", post);
         addPost(post);
         onSubmit(post);
         toast.dismiss(toastId);
@@ -114,7 +117,6 @@ const PostForm = ({
         return post;
       });
     } catch (error) {
-      console.log("Tạo bài viết thất bại:", error);
       toast.dismiss(toastId);
       toast.error("Tạo bài viết thất bại!", { autoClose: 3000 });
     } finally {
