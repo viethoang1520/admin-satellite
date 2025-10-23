@@ -43,6 +43,7 @@ app.use(session({
 
 app.get('/', (req, res) => {
   console.log('Hit / ')
+  res.send('Server is running ✅');
 });
 
 routes(app);
