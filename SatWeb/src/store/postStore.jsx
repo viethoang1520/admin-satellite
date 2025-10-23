@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import axios from "axios";
-axios.defaults.baseURL = "http://localhost:3000";
+axios.defaults.baseURL = `${import.meta.env.VITE_API_BASE_URL}`;
 const postStore = create((set) => ({
   posts: [],
   addPost: (post) => set((state) => ({ posts: [...state.posts, post] })),
