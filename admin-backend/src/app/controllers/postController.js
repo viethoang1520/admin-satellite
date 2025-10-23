@@ -1,9 +1,7 @@
 const Post = require("../models/Post");
 const Satellite = require("../models/Satellite");
-const { generateVariations } = require("../../utils/postUtils");
 const getQueue = require("../../config/queue/pqueue");
 const { postToSatellite } = require("../../apis/post");
-const satelliteApis = require("../../data/satelliteApis");
 
 const getAllPosts = async (req, res) => {
   try {
@@ -42,7 +40,7 @@ const createNewPost = async (req, res) => {
     console.log(JSON.stringify(req.body, null, 2));
 
     const { values, storeImg } = req.body;
-    const { title, content, link } = values;
+    const { title, content } = values;
 
     if (!title || !content) {
       return res.status(400).json({ message: "Title and content are required" });
@@ -51,7 +49,6 @@ const createNewPost = async (req, res) => {
     const newPost = new Post({
       title,
       content,
-      originalLink: link,
     });
     await newPost.save();
 
@@ -119,6 +116,8 @@ const pushToSatelliteWebsite = async (newPost, storeImg) => {
     }
 
     await queue.onIdle();
+    queue.clear(); 
+    queue.removeAllListeners();
     return satelliteUrls;
   } catch (error) {
     console.error("pushToSatelliteWebsite error:", error);
