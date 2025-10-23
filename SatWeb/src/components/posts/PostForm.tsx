@@ -88,7 +88,7 @@ const PostForm = ({
     setUploading(true);
     try {
       await measureAsync("Tạo bài viết mới", async () => {
-        const url = `${process.env.VITE_API_BASE_URL}/api/post`;
+        const url = `${import.meta.env.VITE_API_BASE_URL}/api/post`;
         const response = await fetch(url, {
           method: "POST",
           headers: {
