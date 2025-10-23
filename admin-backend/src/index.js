@@ -43,7 +43,6 @@ app.use(session({
 
 app.get('/', (req, res) => {
   console.log('Hit / ')
-  res.render('home');
 });
 
 routes(app);
