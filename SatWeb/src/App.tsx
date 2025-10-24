@@ -17,8 +17,6 @@ import { useAuthStore } from "./store/authStore";
 function App() {
   // Initialize authentication
   const { isAuthenticated, isLoading } = useAuthStore();
-  console.log("App isLoading:", isLoading);
-  // Hiển thị loading khi đang kiểm tra authentication
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -32,14 +30,10 @@ function App() {
 
   return (
     <Suspense fallback={<p>Đang tải...</p>}>
-      {/* Hiển thị Navigation khi đã đăng nhập và không ở trang login */}
       {isAuthenticated && <Navigation />}
 
       <Routes>
-        {/* Trang login - không cần bảo vệ */}
         <Route path="/login" element={<LoginPage />} />
-
-        {/* Các trang được bảo vệ - cần đăng nhập */}
         <Route
           path="/"
           element={
@@ -65,7 +59,6 @@ function App() {
           }
         />
 
-        {/* Route mặc định - redirect về login */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
       <ToastContainer />
