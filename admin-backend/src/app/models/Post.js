@@ -6,7 +6,19 @@ const Post = new mongoose.Schema({
   totalSatellite: {
     type: Number,
     required: false
-  }
+  },
+  postedSatellite: {
+    type: [String],
+    required: false
+  },
+  errorSatellite: {
+    type: [String],
+    required: false
+  },
+  successfulRate: {
+    type: Number,
+    required: false,
+  },
 }, {
   timestamps: true
 })

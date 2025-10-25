@@ -18,7 +18,6 @@ const trackProgress = async (req, res) => {
     if (!postTitle) {
       return res.status(400).json({ message: "Post title is required" });
     }
-    const numberOfApis = await Satellite.countDocuments();
     const post = await Post.findOne({
       title: postTitle,
     }).sort({ createdAt: -1 });
@@ -28,8 +27,9 @@ const trackProgress = async (req, res) => {
     if (!post.totalSatellite || isNaN(post.totalSatellite)) {
       return res.status(400).json({ message: "Post progress not found" });
     }
-    const progress = (post.totalSatellite / numberOfApis).toFixed(2);
-    console.log("Progress:", progress);
+    const numberOfApis = post.totalSatellite;
+    const successfulPosts = post.postedSatellite ? post.postedSatellite.length : 0;
+    const progress = (successfulPosts / numberOfApis).toFixed(2);
     res.status(200).json({ progress });
   } catch (error) {
     res.status(500).json(error);
@@ -37,11 +37,11 @@ const trackProgress = async (req, res) => {
 };
 const createNewPost = async (req, res) => {
   try {
-    console.log(JSON.stringify(req.body, null, 2));
+    // console.log(JSON.stringify(req.body, null, 2));
 
     const { values, storeImg } = req.body;
     const { title, content } = values;
-
+    const totalSatellite = await Satellite.countDocuments();
     if (!title || !content) {
       return res.status(400).json({ message: "Title and content are required" });
     }
@@ -49,16 +49,23 @@ const createNewPost = async (req, res) => {
     const newPost = new Post({
       title,
       content,
+      totalSatellite,
     });
     await newPost.save();
 
-    const urls = await pushToSatelliteWebsite(newPost, storeImg);
-
-    if (urls.length === 0) {
+    const { satelliteUrls, progress } = await pushToSatelliteWebsite(newPost, storeImg);
+    if (satelliteUrls.length === 0) {
       return res.status(500).json({ message: "Failed to push to satellite websites" });
     }
+    
+    const successfulRate = progress / totalSatellite ;
+    await Post.findByIdAndUpdate(
+      newPost._id,
+      { successfulRate },
+      { new: true }
+    );
 
-    return res.status(201).json({ newPost, urls });
+    return res.status(201).json({ newPost, satelliteUrls });
   } catch (error) {
     console.error(error);
     return res.status(500).json(error);
@@ -86,8 +93,17 @@ const pushToSatelliteWebsite = async (newPost, storeImg) => {
     queue.on("completed", async (result) => {
       if (result?.data?.link) satelliteUrls.push(result.data.link);
       progress += 1;
-      await Post.findOneAndUpdate({ _id: newPost._id }, { totalSatellite: progress });
+      if (satelliteUrls.length !== 0) {
+        await Post.findOneAndUpdate(
+          { _id: newPost._id },
+          { postedSatellite: satelliteUrls }
+        );
+      }
     });
+
+    queue.on("error", async (error) => {
+      console.log("Task failed:", error);
+    })
 
     for (const satellite of satellites) {
       const siteMatch = Object.values(storeImg).find((site) =>
@@ -96,6 +112,12 @@ const pushToSatelliteWebsite = async (newPost, storeImg) => {
 
       if (!siteMatch) {
         console.log(`⚠️ Không tìm thấy site tương ứng cho ${satellite.url}`);
+        // update errorSatellite array in Post model
+        await Post.findByIdAndUpdate(
+          newPost._id,
+          { $push: { errorSatellite: satellite.url } },
+          { new: true }
+        );
         continue;
       }
 
@@ -116,14 +138,15 @@ const pushToSatelliteWebsite = async (newPost, storeImg) => {
     }
 
     await queue.onIdle();
-    queue.clear(); 
+    queue.clear();
     queue.removeAllListeners();
-    return satelliteUrls;
+    return { satelliteUrls, progress };
   } catch (error) {
     console.error("pushToSatelliteWebsite error:", error);
     return [];
   }
 };
+
 
 
 module.exports = {
