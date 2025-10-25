@@ -222,11 +222,10 @@ const PostForm = ({
                       init={{
                         height: 600,
                         menubar: true,
+                        width: "100%",
                         language: "vi",
                         language_url:
                           "https://cdn.tiny.cloud/1/de7eylucb6hopyd8di8ruii0oabt5ylm78zmnnw9dgahz07g/tinymce/8/langs/vi.js",
-
-                        // ❌ bỏ imagetools
                         plugins: [
                           "advlist",
                           "autolink",

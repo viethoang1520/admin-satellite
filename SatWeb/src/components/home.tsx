@@ -132,7 +132,7 @@ const Home = () => {
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">
+              <h1 className="text-2xl font-bold tracking-tight sm:hidden">
                 Quản lí bài viết
               </h1>
               <p className="text-muted-foreground">

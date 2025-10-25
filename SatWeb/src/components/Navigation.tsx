@@ -24,7 +24,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 const Navigation = () => {
   const navigate = useNavigate();
   const { isAuthenticated, logout } = useAuthStore();
-  console.log("Navigation isAuthenticated:", isAuthenticated);
   const authData = localStorage.getItem("auth-storage");
   const scrollToPosts = () => {
     const postsSection = document.getElementById("posts-section");
