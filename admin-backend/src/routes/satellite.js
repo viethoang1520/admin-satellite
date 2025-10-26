@@ -4,10 +4,12 @@ const {
   addSatellite,
   getNumberOfPublishedPosts,
   getNumberOfErrorPosts,
-  getOverallProgress
+  getOverallProgress,
+  getAllSatellites
 } = require('../app/controllers/satelliteController')
 
 router.post('/', addSatellite)
+router.get('/', getAllSatellites)
 router.get('/published-posts', getNumberOfPublishedPosts)
 router.get('/error-posts', getNumberOfErrorPosts)
 router.get('/overall-progress', getOverallProgress)

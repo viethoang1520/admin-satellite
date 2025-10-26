@@ -1,7 +1,14 @@
 const Satellite = require("../models/Satellite");
 const Post = require("../models/Post");
 
-
+const getAllSatellites = async (req, res) => {
+  try {
+    const satellites = await Satellite.find();
+    return res.status(200).json({ satellites });
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+}
 
 // DONE: Add a new satellite
 const addSatellite = (req, res) => {
@@ -87,5 +94,6 @@ module.exports = {
   addSatellite,
   getNumberOfPublishedPosts,
   getNumberOfErrorPosts,
-  getOverallProgress
+  getOverallProgress,
+  getAllSatellites
 };
