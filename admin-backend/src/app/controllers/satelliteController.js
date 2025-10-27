@@ -19,6 +19,10 @@ const addSatellite = (req, res) => {
     if (!url) {
       return res.status(400).json({ message: "URL is required" });
     }
+    const existingUrl = Satellite.findOne({ url });
+    if (existingUrl) {
+      return res.status(400).json({ message: "Satellite URL already exists" });
+    }
     const newSatellite = new Satellite({ url, username, password });
     newSatellite
       .save()
