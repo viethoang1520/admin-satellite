@@ -131,9 +131,9 @@ const Home = () => {
             </Button>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid gap-4 md:grid-cols-4 mb-6">
-            <Card className="hover:shadow-lg transition-all duration-200 border border-gray-100">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+            {/* Tổng số bài viết */}
+            <Card className="hover:shadow-lg transition-all duration-200 border border-gray-100 h-full flex flex-col justify-between">
               <CardHeader className="pb-2">
                 <CardTitle className="text-gray-800 text-sm font-medium">
                   Tổng số bài viết
@@ -149,7 +149,8 @@ const Home = () => {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg transition-all duration-200 border border-gray-100">
+            {/* Bài viết đã đăng thành công */}
+            <Card className="hover:shadow-lg transition-all duration-200 border border-gray-100 h-full flex flex-col justify-between">
               <CardHeader className="pb-2">
                 <CardTitle className="text-green-600 text-sm font-medium">
                   Bài viết đã đăng thành công
@@ -165,7 +166,8 @@ const Home = () => {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg transition-all duration-200 border border-gray-100">
+            {/* Bài viết đăng thất bại */}
+            <Card className="hover:shadow-lg transition-all duration-200 border border-gray-100 h-full flex flex-col justify-between">
               <CardHeader className="pb-2">
                 <CardTitle className="text-red-600 text-sm font-medium">
                   Bài viết đăng thất bại
@@ -181,21 +183,17 @@ const Home = () => {
               </CardContent>
             </Card>
 
-            <Card className="relative overflow-hidden hover:shadow-lg transition-all duration-200 border border-gray-100">
+            {/* Số website vệ tinh */}
+            <Card className="relative overflow-hidden hover:shadow-lg transition-all duration-200 border border-gray-100 h-full flex flex-col justify-between">
               <CardHeader className="pb-2 flex flex-row items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-md bg-blue-100 text-blue-600">
-                    <Globe className="h-5 w-5" />
+                  <div className="rounded-md bg-blue-100 text-blue-600">
+                    <Globe className="h-3 w-3" />
                   </div>
                   <CardTitle className="text-sm font-medium text-gray-800">
                     Số website vệ tinh
                   </CardTitle>
                 </div>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/viewSat" className="text-xs">
-                    Quản lý
-                  </Link>
-                </Button>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-blue-700">
