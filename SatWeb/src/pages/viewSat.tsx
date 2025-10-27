@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
 const ViewSat = ({ sites: initialSites } = {}) => {
-  const [visiblePasswords, setVisiblePasswords] = useState<
-    Record<string, boolean>
-  >({});
+  const [visiblePasswordId, setVisiblePasswordId] = useState<
+    string | number | null
+  >(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const { satellites, getSatellite } = useSatelliteStore();
 
@@ -20,12 +20,9 @@ const ViewSat = ({ sites: initialSites } = {}) => {
       ? initialSites
       : satellites || [];
 
-  // ✅ Toggle hiển thị mật khẩu của từng site
+  // ✅ Toggle hiển thị mật khẩu của từng site (chỉ 1 cái mở)
   const togglePassword = (id: string | number) => {
-    setVisiblePasswords((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+    setVisiblePasswordId((prev) => (prev === id ? null : id));
   };
 
   // ✅ Copy text và hiển thị “Copied”
@@ -39,6 +36,7 @@ const ViewSat = ({ sites: initialSites } = {}) => {
     }
   };
 
+  // ✅ Mở site trong tab mới
   const openSite = (url: string) => {
     const fixed =
       url.startsWith("http://") || url.startsWith("https://")
@@ -84,8 +82,10 @@ const ViewSat = ({ sites: initialSites } = {}) => {
             <tbody className="divide-y">
               {sites.map((s, idx) => (
                 <tr key={s.id ?? idx} className="hover:bg-gray-50 transition">
+                  {/* STT */}
                   <td className="px-4 py-3 text-sm text-gray-700">{idx + 1}</td>
 
+                  {/* URL */}
                   <td className="px-4 py-3 text-sm">
                     <div className="flex items-center gap-2">
                       <a
@@ -109,6 +109,7 @@ const ViewSat = ({ sites: initialSites } = {}) => {
                     )}
                   </td>
 
+                  {/* Username */}
                   <td className="px-4 py-3 text-sm">
                     <div className="flex items-center gap-2">
                       <span className="truncate max-w-[160px]">
@@ -127,21 +128,24 @@ const ViewSat = ({ sites: initialSites } = {}) => {
                     )}
                   </td>
 
+                  {/* Password */}
                   <td className="px-4 py-3 text-sm">
                     <div className="flex items-center gap-2">
                       <code className="block truncate max-w-[200px] bg-gray-100 px-2 py-1 rounded">
-                        {visiblePasswords[s.id] ? s.password : "•".repeat(8)}
+                        {visiblePasswordId === s.id
+                          ? s.password
+                          : "•".repeat(8)}
                       </code>
                       <button
                         onClick={() => togglePassword(s.id)}
                         className="p-1 rounded-md hover:bg-gray-100"
                         title={
-                          visiblePasswords[s.id]
+                          visiblePasswordId === s.id
                             ? "Ẩn mật khẩu"
                             : "Hiện mật khẩu"
                         }
                       >
-                        {visiblePasswords[s.id] ? (
+                        {visiblePasswordId === s.id ? (
                           <EyeOff className="h-4 w-4 text-gray-500" />
                         ) : (
                           <Eye className="h-4 w-4 text-gray-500" />
@@ -160,12 +164,14 @@ const ViewSat = ({ sites: initialSites } = {}) => {
                     )}
                   </td>
 
+                  {/* Chỉnh sửa */}
                   <td className="px-4 py-3 text-sm text-gray-600">
-                    <Button>
+                    <Button asChild>
                       <Link to={`/viewSat/${s._id}`}>Xem chi tiết</Link>
                     </Button>
                   </td>
 
+                  {/* Action */}
                   <td className="px-4 py-3 text-right">
                     <button
                       onClick={() => openSite(s.url)}
@@ -178,6 +184,7 @@ const ViewSat = ({ sites: initialSites } = {}) => {
                 </tr>
               ))}
 
+              {/* Không có dữ liệu */}
               {sites.length === 0 && (
                 <tr>
                   <td

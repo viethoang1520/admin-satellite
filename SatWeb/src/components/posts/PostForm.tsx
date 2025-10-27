@@ -16,21 +16,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import {
-  Image as ImageIcon,
-  Eye,
-  EyeOff,
-  Clock,
-  BarChart3,
-} from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PerformanceDisplay } from "@/components/ui/PerformanceDisplay";
 import { useNavigate } from "react-router";
-import { title } from "process";
 import wpSites from "@/state/wpSite";
 import useProgressStore from "@/store/progress";
+import { CheckCircle, Loader2, UploadCloud } from "lucide-react";
+import { PerformanceDisplay } from "@/components/ui/PerformanceDisplay";
+
 const formSchema = z.object({
   title: z
     .string()
@@ -58,88 +50,11 @@ const PostForm = ({
   isEditing = false,
 }: PostFormProps) => {
   const navigate = useNavigate();
-  const [previewMode, setPreviewMode] = useState(false);
   const [showMetrics, setShowMetrics] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const { posts, addPost } = postStore();
-  const { setProgress, reset } = useProgressStore();
+  const { addPost } = postStore();
+  const { setProgress } = useProgressStore();
   const { measureAsync, clearMetrics, metrics } = usePerformanceMonitor();
-  const defaultValues: FormValues = initialValues || {
-    title: "",
-    content: "",
-    link: "",
-  };
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues,
-  });
-
-  const handleSubmit = async (values: FormValues) => {
-    const toastId = toast.info("Đang tạo bài viết mới...", {
-      autoClose: false,
-    });
-
-    setProgress({
-      status: "in-progress",
-      message: "Đang gửi yêu cầu tạo bài viết...",
-      percent: 10,
-    });
-
-    navigate("/progress");
-    setUploading(true);
-    try {
-      await measureAsync("Tạo bài viết mới", async () => {
-        const url = `${import.meta.env.VITE_API_BASE_URL}/api/post`;
-        const response = await fetch(url, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ values, storeImg: storeImg.current }),
-        });
-        if (!response.ok) {
-          throw new Error("Yêu cầu thất bại");
-        }
-        const { newPost, satelliteUrls } = await response.json();
-        setProgress({
-          status: "success",
-          message: "Tạo bài viết thành công!",
-          percent: 100,
-          newPost,
-          satelliteUrls,
-        });
-        addPost(newPost);
-        onSubmit(newPost);
-        toast.dismiss(toastId);
-        return newPost;
-      });
-    } catch (error) {
-      toast.dismiss(toastId);
-      toast.error("Tạo bài viết thất bại!", { autoClose: 3000 });
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const file_picker_callback = (callback, value, meta) => {
-    if (meta.filetype === "image") {
-      const input = document.createElement("input");
-      input.setAttribute("type", "file");
-      input.setAttribute("accept", "image/*");
-
-      input.onchange = async function () {
-        const file = (this as HTMLInputElement).files?.[0];
-        if (file) {
-          // Upload lên nhiều WordPress site
-          const results = await uploadImageToMultipleWordPress(file);
-          // Chèn ảnh đầu tiên vào editor
-          callback(results[0].link, { alt: file.name });
-        }
-      };
-
-      input.click();
-    }
-  };
 
   const storeImg = useRef({
     siteA: {
@@ -150,6 +65,106 @@ const PostForm = ({
     siteB: { name: "SiteB", baseUrl: "https://aquacityvn.com/", img: [] },
   });
 
+  const defaultValues: FormValues = initialValues || {
+    title: "",
+    content: "",
+    link: "",
+  };
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues,
+  });
+
+  const handleSubmit = async (values: FormValues) => {
+    const toastId = toast.info("🔄 Bắt đầu clone bài viết...", {
+      autoClose: false,
+    });
+
+    setProgress({
+      status: "in-progress",
+      message: "Đang gửi yêu cầu tạo bài viết...",
+      percent: 10,
+    });
+
+    // 🎨 Hàm giả lập từng giai đoạn chuyên nghiệp
+    const fakeStep = async (message: string, percent: number, delay = 1000) => {
+      let icon, color;
+      if (percent < 40) {
+        icon = <Loader2 className="animate-spin text-blue-500" />;
+        color = "bg-blue-50";
+      } else if (percent < 70) {
+        icon = <UploadCloud className="text-amber-500 animate-pulse" />;
+        color = "bg-amber-50";
+      } else {
+        icon = <CheckCircle className="text-green-500" />;
+        color = "bg-green-50";
+      }
+
+      setProgress({ status: "in-progress", message, percent });
+      toast.update(toastId, {
+        render: (
+          <div className={`flex items-center gap-3 ${color} p-2 rounded-md`}>
+            {icon}
+            <span className="font-medium text-gray-800">{message}</span>
+            <span className="ml-auto font-semibold text-primary-600">
+              {percent}%
+            </span>
+          </div>
+        ),
+        type: "info",
+        autoClose: false,
+      });
+
+      await new Promise((res) => setTimeout(res, delay));
+    };
+
+    // ⚙️ Gọi từng bước
+    await fakeStep("🧩 Đang xử lý nội dung bài viết...", 25);
+    await fakeStep("🖼️ Đang tải ảnh và dữ liệu liên quan...", 45);
+    await fakeStep("📡 Đang gửi yêu cầu đến máy chủ...", 65);
+
+    navigate("/progress");
+    setUploading(true);
+
+    try {
+      await measureAsync("Tạo bài viết mới", async () => {
+        const url = `${import.meta.env.VITE_API_BASE_URL}/api/post`;
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ values, storeImg: storeImg.current }),
+        });
+
+        if (!response.ok) throw new Error("Yêu cầu thất bại");
+
+        const { newPost, satelliteUrls } = await response.json();
+        setProgress({
+          status: "success",
+          message: "🎉 Tạo bài viết thành công!",
+          percent: 100,
+          newPost,
+          satelliteUrls,
+        });
+
+        addPost(newPost);
+        onSubmit(newPost);
+        toast.update(toastId, {
+          render: "✅ Tạo bài viết thành công!",
+          type: "success",
+          autoClose: 2500,
+        });
+        return newPost;
+      });
+    } catch (error) {
+      toast.dismiss(toastId);
+      toast.error("❌ Tạo bài viết thất bại!", { autoClose: 3000 });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Upload ảnh lên nhiều WordPress site
   const uploadImageToMultipleWordPress = async (file: File) => {
     const uploadPromises = wpSites.map(async (site) => {
       const url = `${site.baseUrl}/wp-json/wp/v2/media`;
@@ -158,7 +173,6 @@ const PostForm = ({
       formData.append("file", file, file.name);
 
       const auth = btoa(`${site.username}:${appPassword}`);
-
       const res = await fetch(url, {
         method: "POST",
         headers: { Authorization: `Basic ${auth}` },
@@ -167,16 +181,33 @@ const PostForm = ({
 
       if (!res.ok) throw new Error(`Upload failed for ${site.name}`);
       const data = await res.json();
-      if (site.name === "SiteA") {
-        console.log("data", data);
+
+      if (site.name === "SiteA")
         storeImg.current.siteA.img.push(data.source_url);
-      } else if (site.name === "SiteB") {
+      else if (site.name === "SiteB")
         storeImg.current.siteB.img.push(data.source_url);
-      }
+
       return { site: site.name, link: data.source_url };
     });
-    const results = await Promise.all(uploadPromises);
-    return results;
+    return await Promise.all(uploadPromises);
+  };
+
+  // TinyMCE file picker
+  const file_picker_callback = (callback, value, meta) => {
+    if (meta.filetype === "image") {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+
+      input.onchange = async function () {
+        const file = (this as HTMLInputElement).files?.[0];
+        if (file) {
+          const results = await uploadImageToMultipleWordPress(file);
+          callback(results[0].link, { alt: file.name });
+        }
+      };
+      input.click();
+    }
   };
 
   return (
@@ -242,13 +273,10 @@ const PostForm = ({
                           "help",
                           "wordcount",
                         ],
-
                         toolbar:
                           "undo redo | formatselect | bold italic underline | " +
                           "alignleft aligncenter alignright alignjustify | " +
                           "bullist numlist outdent indent | image media table | removeformat | help",
-
-                        // upload ảnh
                         file_picker_callback: file_picker_callback,
                         images_upload_handler: async (blobInfo) => {
                           const file = blobInfo.blob();
@@ -257,26 +285,20 @@ const PostForm = ({
                           );
                           return urls[0].link;
                         },
-
                         automatic_uploads: true,
                         file_picker_types: "image",
-
-                        // ✅ Tính năng chỉnh sửa ảnh vẫn hoạt động (dù không có imagetools)
                         image_advtab: true,
                         image_dimensions: true,
                         image_caption: true,
-                        object_resizing: true, // cho phép resize ảnh và bảng
+                        object_resizing: true,
                         paste_data_images: true,
                         draggable_modal: true,
-
-                        // ✅ Context menu đơn giản
                         contextmenu: "link image table",
-
                         content_style: `
-      body { font-family: Helvetica, Arial, sans-serif; font-size: 14px; }
-      img { max-width: 100%; height: auto; cursor: move; }
-      figure.image { display: inline-block; margin: 0 auto; }
-    `,
+                          body { font-family: Helvetica, Arial, sans-serif; font-size: 14px; }
+                          img { max-width: 100%; height: auto; cursor: move; }
+                          figure.image { display: inline-block; margin: 0 auto; }
+                        `,
                       }}
                     />
                   </FormControl>
@@ -285,52 +307,19 @@ const PostForm = ({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="link"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Link (Tuỳ chọn)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="https://example.com" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Link liên kết ngoài liên quan đến bài viết
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <div className="flex justify-between items-center space-x-2 pt-4 border-t">
-              <div className="flex space-x-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowMetrics(!showMetrics)}
-                  className="flex items-center gap-2"
-                >
-                  <Clock className="h-4 w-4" />
-                  {showMetrics ? "Ẩn" : "Hiện"} thống kê
-                </Button>
-              </div>
-
-              <div className="flex space-x-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    form.reset();
-                    setPreviewMode(false);
-                  }}
-                >
-                  Hủy
-                </Button>
-                <Button disabled={uploading} type="submit">
-                  {isEditing ? "Lưu thay đổi" : "Tạo bài viết"}
-                </Button>
-              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  form.reset();
+                }}
+              >
+                Hủy
+              </Button>
+              <Button disabled={uploading} type="submit">
+                {isEditing ? "💾 Lưu thay đổi" : "🚀 Tạo bài viết"}
+              </Button>
             </div>
           </form>
         </Form>
