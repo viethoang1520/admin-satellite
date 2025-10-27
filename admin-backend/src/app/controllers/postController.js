@@ -28,7 +28,9 @@ const trackProgress = async (req, res) => {
       return res.status(400).json({ message: "Post progress not found" });
     }
     const numberOfApis = post.totalSatellite;
-    const successfulPosts = post.postedSatellite ? post.postedSatellite.length : 0;
+    const successfulPosts = post.postedSatellite
+      ? post.postedSatellite.length
+      : 0;
     const progress = (successfulPosts / numberOfApis).toFixed(2);
     res.status(200).json({ progress });
   } catch (error) {
@@ -43,7 +45,9 @@ const createNewPost = async (req, res) => {
     const { title, content } = values;
     const totalSatellite = await Satellite.countDocuments();
     if (!title || !content) {
-      return res.status(400).json({ message: "Title and content are required" });
+      return res
+        .status(400)
+        .json({ message: "Title and content are required" });
     }
 
     const newPost = new Post({
@@ -53,19 +57,24 @@ const createNewPost = async (req, res) => {
     });
     await newPost.save();
 
-    const { satelliteUrls, progress } = await pushToSatelliteWebsite(newPost, storeImg);
+    const { satelliteUrls, progress } = await pushToSatelliteWebsite(
+      newPost,
+      storeImg
+    );
     if (satelliteUrls.length === 0) {
-      return res.status(500).json({ message: "Failed to push to satellite websites" });
+      return res
+        .status(500)
+        .json({ message: "Failed to push to satellite websites" });
     }
-    
-    const successfulRate = progress / totalSatellite ;
+
+    const successfulRate = progress / totalSatellite;
     await Post.findByIdAndUpdate(
       newPost._id,
       { successfulRate },
       { new: true }
     );
-
-    return res.status(201).json({ newPost, satelliteUrls });
+    const updatedPost = await Post.findById(newPost._id);
+    return res.status(201).json({ newPost: updatedPost, satelliteUrls });
   } catch (error) {
     console.error(error);
     return res.status(500).json(error);
@@ -74,7 +83,10 @@ const createNewPost = async (req, res) => {
 
 function replaceImageLinks(content, baseUrlOld, baseUrlNew) {
   if (!content) return content;
-  const regex = new RegExp(baseUrlOld.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g");
+  const regex = new RegExp(
+    baseUrlOld.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+    "g"
+  );
   return content.replace(regex, baseUrlNew);
 }
 
@@ -103,7 +115,7 @@ const pushToSatelliteWebsite = async (newPost, storeImg) => {
 
     queue.on("error", async (error) => {
       console.log("Task failed:", error);
-    })
+    });
 
     for (const satellite of satellites) {
       const siteMatch = Object.values(storeImg).find((site) =>
@@ -122,8 +134,11 @@ const pushToSatelliteWebsite = async (newPost, storeImg) => {
       }
 
       let newContent = newPost.content;
-      newContent = replaceImageLinks(newContent, siteMatch.baseUrl, satellite.url);
-
+      newContent = replaceImageLinks(
+        newContent,
+        siteMatch.baseUrl,
+        satellite.url
+      );
 
       const post = {
         title: newPost.title,
@@ -146,8 +161,6 @@ const pushToSatelliteWebsite = async (newPost, storeImg) => {
     return [];
   }
 };
-
-
 
 module.exports = {
   getAllPosts,
