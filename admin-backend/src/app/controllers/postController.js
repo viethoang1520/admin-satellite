@@ -39,8 +39,6 @@ const trackProgress = async (req, res) => {
 };
 const createNewPost = async (req, res) => {
   try {
-    // console.log(JSON.stringify(req.body, null, 2));
-
     const { values, storeImg } = req.body;
     const { title, content } = values;
     const totalSatellite = await Satellite.countDocuments();
@@ -76,8 +74,7 @@ const createNewPost = async (req, res) => {
     const updatedPost = await Post.findById(newPost._id);
     return res.status(201).json({ newPost: updatedPost, satelliteUrls });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json(error);
+    return res.status(500).json({error: error.message});
   }
 };
 
@@ -157,7 +154,6 @@ const pushToSatelliteWebsite = async (newPost, storeImg) => {
     queue.removeAllListeners();
     return { satelliteUrls, progress };
   } catch (error) {
-    console.error("pushToSatelliteWebsite error:", error);
     return [];
   }
 };

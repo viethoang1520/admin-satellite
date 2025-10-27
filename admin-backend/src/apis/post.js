@@ -28,8 +28,11 @@ const postToSatellite = async (satellite, post) => {
       }
     )
   } catch (error) {
-    console.log('Error in postToSatellite:', error)
-    throw error
+    console.log('Error in postToSatellite:', error.response)
+    response.status(500).json({
+      errorCode: error.response?.status,
+      message: error.response?.data?.message 
+    });
   }
 }
 
