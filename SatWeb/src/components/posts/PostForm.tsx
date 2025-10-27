@@ -30,6 +30,7 @@ import { PerformanceDisplay } from "@/components/ui/PerformanceDisplay";
 import { useNavigate } from "react-router";
 import { title } from "process";
 import wpSites from "@/state/wpSite";
+import useProgressStore from "@/store/progress";
 const formSchema = z.object({
   title: z
     .string()
@@ -61,13 +62,13 @@ const PostForm = ({
   const [showMetrics, setShowMetrics] = useState(false);
   const [uploading, setUploading] = useState(false);
   const { posts, addPost } = postStore();
+  const { setProgress, reset } = useProgressStore();
   const { measureAsync, clearMetrics, metrics } = usePerformanceMonitor();
   const defaultValues: FormValues = initialValues || {
     title: "",
     content: "",
     link: "",
   };
-
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues,
@@ -78,13 +79,13 @@ const PostForm = ({
       autoClose: false,
     });
 
-    navigate("/progress", {
-      state: {
-        post: {
-          title: values.title,
-        },
-      },
+    setProgress({
+      status: "in-progress",
+      message: "Đang gửi yêu cầu tạo bài viết...",
+      percent: 10,
     });
+
+    navigate("/progress");
     setUploading(true);
     try {
       await measureAsync("Tạo bài viết mới", async () => {
@@ -96,25 +97,24 @@ const PostForm = ({
           },
           body: JSON.stringify({ values, storeImg: storeImg.current }),
         });
-
         if (!response.ok) {
           throw new Error("Yêu cầu thất bại");
         }
-
-        const { newPost, urls } = await response.json();
-
-        const post = {
-          id: newPost._id,
-          title: newPost.title,
-          content: newPost.content,
-          urls: urls,
-        };
-
-        addPost(post);
-        onSubmit(post);
+        const { newPost, satelliteUrls } = await response.json();
+        console.log("newPost trong post form", newPost);
+        console.log("satelliteUrls trong post form", satelliteUrls);
+        setProgress({
+          status: "success",
+          message: "Tạo bài viết thành công!",
+          percent: 100,
+          newPost,
+          satelliteUrls,
+        });
+        addPost(newPost);
+        onSubmit(newPost);
         toast.dismiss(toastId);
         toast.success("Tạo bài viết thành công!", { autoClose: 3000 });
-        return post;
+        return newPost;
       });
     } catch (error) {
       toast.dismiss(toastId);
