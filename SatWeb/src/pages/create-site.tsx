@@ -108,14 +108,7 @@ const CreateSite = () => {
                 {editMode ? "Hủy" : "Chỉnh sửa"}
               </Button>
 
-              {editMode && (
-                <Button
-                  type="submit"
-                  className="bg-primary-600 hover:bg-primary-700"
-                >
-                  Lưu thay đổi
-                </Button>
-              )}
+              {editMode && <Button type="submit">Lưu thay đổi</Button>}
             </div>
           </form>
         </Form>

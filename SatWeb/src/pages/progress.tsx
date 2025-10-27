@@ -10,6 +10,7 @@ import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import urlsWp from "@/state/sites";
 import useProgressStore from "@/store/progress";
+import { set } from "date-fns";
 
 type SiteStatus = "pending" | "in-progress" | "success" | "failed";
 
@@ -36,24 +37,17 @@ const ProgressPage = () => {
   const [activeFilter, setActiveFilter] = useState<SiteStatus | "all">("all");
   const posts = postStore((state) => state.posts);
   const getPost = postStore((state) => state.getPost);
-  const [searchParams] = useSearchParams();
   const getProgress = postStore((state) => state.getProgress);
   const { status, message, percent, newPost, satelliteUrls } =
     useProgressStore();
+  const location = useLocation();
+  const post = location.state?.post;
+  const realPost = newPost ? newPost : post;
   useEffect(() => {
-    if (!newPost) return;
+    if (!realPost) return;
     let interval: NodeJS.Timeout;
-    const fetchProgress = async () => {
-      const progress = await getProgress(newPost.title);
-      setOverallProgress(progress ? progress * 100 : 0);
-    };
-
-    fetchProgress();
-
-    interval = setInterval(fetchProgress, 5000);
-
-    return () => clearInterval(interval);
-  }, [newPost]);
+    setOverallProgress(Number((realPost.successfulRate * 100).toFixed(1)));
+  }, [newPost, post]);
 
   useEffect(() => {
     getPost();
@@ -67,10 +61,9 @@ const ProgressPage = () => {
     return baseUrls;
   };
   useEffect(() => {
-    if (!newPost) return;
-
-    const postedList = newPost.postedSatellite || [];
-    const errorList = newPost.errorSatellite || [];
+    if (!newPost && !post) return;
+    const postedList = realPost.postedSatellite || [];
+    const errorList = realPost.errorSatellite || [];
 
     // Gộp cả 2 mảng lại
     const allSites = [...postedList, ...errorList];
@@ -89,46 +82,7 @@ const ProgressPage = () => {
     });
 
     setSites(mockSites);
-  }, [newPost, satelliteUrls]);
-
-  // useEffect(() => {
-  //   if (!newPost) return;
-  //   const postedList = newPost.postedSatellite || [];
-  //   console.log("postedList", postedList);
-  //   const baseUrls = handleParseUrl(postedList); // giả sử hàm này chuẩn hóa URL
-  //   const mockSites: Site[] = baseUrls.map((url, i) => {
-  //     let status: SiteStatus = "success"; // mặc định thành công
-  //     status = "success";
-  //     return {
-  //       id: i + 1,
-  //       name: `Satellite Site ${i + 1}`,
-  //       status,
-  //       updatedAt: new Date(),
-  //       url,
-  //     };
-  //   });
-  //   setSites(mockSites);
-  // }, [newPost, satelliteUrls]);
-
-  // useEffect(() => {
-  //   if (!newPost) return;
-
-  //   const errorList = newPost.errorSatellite || [];
-  //   const baseUrls = handleParseUrl(errorList);
-  //   const mockSites: Site[] = baseUrls.map((url, i) => {
-  //     let status: SiteStatus = "failed";
-  //     status = "failed";
-  //     return {
-  //       id: i + 1,
-  //       name: `Satellite Site ${i + 1}`,
-  //       status,
-  //       updatedAt: new Date(),
-  //       url,
-  //     };
-  //   });
-  //   setSites(mockSites);
-  // }, [newPost, satelliteUrls]);
-
+  }, [newPost, satelliteUrls, post]);
   const restartPublishing = () => {
     window.location.reload();
   };
@@ -220,19 +174,19 @@ const ProgressPage = () => {
               <CardTitle>Selected Post</CardTitle>
             </CardHeader>
             <CardContent>
-              {newPost ? (
+              {realPost ? (
                 <div className="flex flex-col space-y-2">
-                  <h3 className="font-semibold text-lg">{newPost.title}</h3>
+                  <h3 className="font-semibold text-lg">{realPost.title}</h3>
                   <p className="text-gray-600 text-sm line-clamp-2">
-                    {newPost.content ? newPost.content : ""}
+                    {realPost.content ? realPost.content : ""}
                   </p>
                   <a
-                    href={newPost.link}
+                    href={realPost.link}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:underline text-sm"
                   >
-                    {newPost.link}
+                    {realPost.link}
                   </a>
                 </div>
               ) : (

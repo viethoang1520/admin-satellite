@@ -55,6 +55,7 @@ const PostTable = ({
 
   const handlePublish = (post: Post) => {
     onPublish(post._id);
+    console.log("Navigating to progress page for post:", post);
     navigate(`/progress`, { state: { post } });
   };
 
@@ -91,10 +92,11 @@ const PostTable = ({
 
   const truncateContent = (content: string, maxLength = 100) => {
     // Remove markdown image syntax for preview
-    const textOnly = content.replace(
-      /!\[([^\]]*)\]\(([^)]+)\)/g,
-      "[Image: $1]"
-    );
+    const textOnly = stripHtmlTags(content);
+    // const textOnly = content.replace(
+    //   /!\[([^\]]*)\]\(([^)]+)\)/g,
+    //   "[Image: $1]"
+    // );
     return textOnly.length > maxLength
       ? `${textOnly.substring(0, maxLength)}...`
       : textOnly;
@@ -116,7 +118,13 @@ const PostTable = ({
       );
     });
   };
-
+  const stripHtmlTags = (html: string): string => {
+    const text = html.replace(/<[^>]*>/g, "").trim();
+    const parser = new DOMParser();
+    const decoded = parser.parseFromString(text, "text/html").documentElement
+      .textContent;
+    return decoded || "";
+  };
   const hasImages = (content: string) => {
     return /!\[([^\]]*)\]\(([^)]+)\)/g.test(content);
   };
