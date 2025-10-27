@@ -20,9 +20,12 @@ const ViewSat = ({ sites: initialSites } = {}) => {
       ? initialSites
       : satellites || [];
 
-  // ✅ Toggle hiển thị mật khẩu của từng site (chỉ 1 cái mở)
-  const togglePassword = (id: string | number) => {
-    setVisiblePasswordId((prev) => (prev === id ? null : id));
+  // ✅ Mỗi dòng dùng id duy nhất
+  const getUniqueId = (s: any, idx: number) => s._id || s.id || idx;
+
+  // ✅ Toggle hiển thị mật khẩu (chỉ 1 site)
+  const togglePassword = (uniqueId: string | number) => {
+    setVisiblePasswordId((prev) => (prev === uniqueId ? null : uniqueId));
   };
 
   // ✅ Copy text và hiển thị “Copied”
@@ -80,109 +83,114 @@ const ViewSat = ({ sites: initialSites } = {}) => {
             </thead>
 
             <tbody className="divide-y">
-              {sites.map((s, idx) => (
-                <tr key={s.id ?? idx} className="hover:bg-gray-50 transition">
-                  {/* STT */}
-                  <td className="px-4 py-3 text-sm text-gray-700">{idx + 1}</td>
+              {sites.map((s, idx) => {
+                const uid = getUniqueId(s, idx);
+                return (
+                  <tr key={uid} className="hover:bg-gray-50 transition">
+                    {/* STT */}
+                    <td className="px-4 py-3 text-sm text-gray-700">
+                      {idx + 1}
+                    </td>
 
-                  {/* URL */}
-                  <td className="px-4 py-3 text-sm">
-                    <div className="flex items-center gap-2">
-                      <a
-                        href={s.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline truncate max-w-[320px]"
-                      >
-                        {s.url}
-                      </a>
+                    {/* URL */}
+                    <td className="px-4 py-3 text-sm">
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={s.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline truncate max-w-[320px]"
+                        >
+                          {s.url}
+                        </a>
+                        <button
+                          onClick={() => handleCopy(s.url, `url-${uid}`)}
+                          className="p-1 rounded-md hover:bg-gray-100"
+                          title="Copy URL"
+                        >
+                          <Copy className="h-4 w-4 text-gray-500" />
+                        </button>
+                      </div>
+                      {copiedId === `url-${uid}` && (
+                        <div className="text-xs text-green-600">Copied</div>
+                      )}
+                    </td>
+
+                    {/* Username */}
+                    <td className="px-4 py-3 text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="truncate max-w-[160px]">
+                          {s.username}
+                        </span>
+                        <button
+                          onClick={() => handleCopy(s.username, `user-${uid}`)}
+                          className="p-1 rounded-md hover:bg-gray-100"
+                          title="Copy username"
+                        >
+                          <Copy className="h-4 w-4 text-gray-500" />
+                        </button>
+                      </div>
+                      {copiedId === `user-${uid}` && (
+                        <div className="text-xs text-green-600">Copied</div>
+                      )}
+                    </td>
+
+                    {/* Password */}
+                    <td className="px-4 py-3 text-sm">
+                      <div className="flex items-center gap-2">
+                        <code className="block truncate max-w-[200px] bg-gray-100 px-2 py-1 rounded">
+                          {visiblePasswordId === uid
+                            ? s.password
+                            : "•".repeat(8)}
+                        </code>
+                        <button
+                          onClick={() => togglePassword(uid)}
+                          className="p-1 rounded-md hover:bg-gray-100"
+                          title={
+                            visiblePasswordId === uid
+                              ? "Ẩn mật khẩu"
+                              : "Hiện mật khẩu"
+                          }
+                        >
+                          {visiblePasswordId === uid ? (
+                            <EyeOff className="h-4 w-4 text-gray-500" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-gray-500" />
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleCopy(s.password, `pass-${uid}`)}
+                          className="p-1 rounded-md hover:bg-gray-100"
+                          title="Copy password"
+                        >
+                          <Copy className="h-4 w-4 text-gray-500" />
+                        </button>
+                      </div>
+                      {copiedId === `pass-${uid}` && (
+                        <div className="text-xs text-green-600">Copied</div>
+                      )}
+                    </td>
+
+                    {/* Chỉnh sửa */}
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      <Button asChild>
+                        <Link to={`/viewSat/${uid}`}>Xem chi tiết</Link>
+                      </Button>
+                    </td>
+
+                    {/* Action */}
+                    <td className="px-4 py-3 text-right">
                       <button
-                        onClick={() => handleCopy(s.url, `url-${s.id}`)}
-                        className="p-1 rounded-md hover:bg-gray-100"
-                        title="Copy URL"
+                        onClick={() => openSite(s.url)}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 text-sm border rounded-md bg-white hover:shadow-sm transition"
                       >
-                        <Copy className="h-4 w-4 text-gray-500" />
+                        <ExternalLink className="h-4 w-4" />
+                        Mở
                       </button>
-                    </div>
-                    {copiedId === `url-${s.id}` && (
-                      <div className="text-xs text-green-600">Copied</div>
-                    )}
-                  </td>
-
-                  {/* Username */}
-                  <td className="px-4 py-3 text-sm">
-                    <div className="flex items-center gap-2">
-                      <span className="truncate max-w-[160px]">
-                        {s.username}
-                      </span>
-                      <button
-                        onClick={() => handleCopy(s.username, `user-${s.id}`)}
-                        className="p-1 rounded-md hover:bg-gray-100"
-                        title="Copy username"
-                      >
-                        <Copy className="h-4 w-4 text-gray-500" />
-                      </button>
-                    </div>
-                    {copiedId === `user-${s.id}` && (
-                      <div className="text-xs text-green-600">Copied</div>
-                    )}
-                  </td>
-
-                  {/* Password */}
-                  <td className="px-4 py-3 text-sm">
-                    <div className="flex items-center gap-2">
-                      <code className="block truncate max-w-[200px] bg-gray-100 px-2 py-1 rounded">
-                        {visiblePasswordId === s.id
-                          ? s.password
-                          : "•".repeat(8)}
-                      </code>
-                      <button
-                        onClick={() => togglePassword(s.id)}
-                        className="p-1 rounded-md hover:bg-gray-100"
-                        title={
-                          visiblePasswordId === s.id
-                            ? "Ẩn mật khẩu"
-                            : "Hiện mật khẩu"
-                        }
-                      >
-                        {visiblePasswordId === s.id ? (
-                          <EyeOff className="h-4 w-4 text-gray-500" />
-                        ) : (
-                          <Eye className="h-4 w-4 text-gray-500" />
-                        )}
-                      </button>
-                      <button
-                        onClick={() => handleCopy(s.password, `pass-${s.id}`)}
-                        className="p-1 rounded-md hover:bg-gray-100"
-                        title="Copy password"
-                      >
-                        <Copy className="h-4 w-4 text-gray-500" />
-                      </button>
-                    </div>
-                    {copiedId === `pass-${s.id}` && (
-                      <div className="text-xs text-green-600">Copied</div>
-                    )}
-                  </td>
-
-                  {/* Chỉnh sửa */}
-                  <td className="px-4 py-3 text-sm text-gray-600">
-                    <Button asChild>
-                      <Link to={`/viewSat/${s._id}`}>Xem chi tiết</Link>
-                    </Button>
-                  </td>
-
-                  {/* Action */}
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => openSite(s.url)}
-                      className="inline-flex items-center gap-2 px-3 py-1.5 text-sm border rounded-md bg-white hover:shadow-sm transition"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      Mở
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                );
+              })}
 
               {/* Không có dữ liệu */}
               {sites.length === 0 && (
