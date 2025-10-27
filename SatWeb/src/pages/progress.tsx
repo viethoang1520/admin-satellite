@@ -9,6 +9,7 @@ import { useSearchParams } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import urlsWp from "@/state/sites";
+import useProgressStore from "@/store/progress";
 
 type SiteStatus = "pending" | "in-progress" | "success" | "failed";
 
@@ -36,15 +37,14 @@ const ProgressPage = () => {
   const posts = postStore((state) => state.posts);
   const getPost = postStore((state) => state.getPost);
   const [searchParams] = useSearchParams();
-  const location = useLocation();
-  const { post, title } = location.state || {};
-  const urls = urlsWp || [];
-  // lấy getProgress
   const getProgress = postStore((state) => state.getProgress);
+  const { status, message, percent, newPost, satelliteUrls } =
+    useProgressStore();
   useEffect(() => {
+    if (!newPost) return;
     let interval: NodeJS.Timeout;
     const fetchProgress = async () => {
-      const progress = await getProgress(post.title);
+      const progress = await getProgress(newPost.title);
       setOverallProgress(progress ? progress * 100 : 0);
     };
 
@@ -53,7 +53,7 @@ const ProgressPage = () => {
     interval = setInterval(fetchProgress, 5000);
 
     return () => clearInterval(interval);
-  }, [post.title]);
+  }, [newPost]);
 
   useEffect(() => {
     getPost();
@@ -66,29 +66,69 @@ const ProgressPage = () => {
     });
     return baseUrls;
   };
-
   useEffect(() => {
-    const urlsList = [
-      `https://canho-bconssolary.com`,
-      `https://aquacityvn.com`,
-    ];
-    const baseUrls = handleParseUrl(urls);
-    console.log("post.urls", baseUrls[0]);
-    const mockSites: Site[] = Array.from({ length: urls.length }, (_, i) => ({
-      id: i + 1,
-      name: `Satellite Site ${i + 1}`,
-      status: urlsList.includes(baseUrls[i])
-        ? ("success" as SiteStatus)
-        : ("pending" as SiteStatus),
-      updatedAt: new Date(),
-      url: urls[i],
-    }));
+    if (!newPost) return;
+
+    const postedList = newPost.postedSatellite || [];
+    const errorList = newPost.errorSatellite || [];
+
+    // Gộp cả 2 mảng lại
+    const allSites = [...postedList, ...errorList];
+
+    // Map ra danh sách sites kèm trạng thái đúng
+    const mockSites: Site[] = allSites.map((url, i) => {
+      const isSuccess = postedList.includes(allSites[i]);
+      const status: SiteStatus = isSuccess ? "success" : "failed";
+      return {
+        id: i + 1,
+        name: `Satellite Site ${i + 1}`,
+        status,
+        updatedAt: new Date(),
+        url,
+      };
+    });
 
     setSites(mockSites);
-    console.log("mockSites", mockSites);
-  }, []);
+  }, [newPost, satelliteUrls]);
 
-  // Reset all sites to pending and restart the process
+  // useEffect(() => {
+  //   if (!newPost) return;
+  //   const postedList = newPost.postedSatellite || [];
+  //   console.log("postedList", postedList);
+  //   const baseUrls = handleParseUrl(postedList); // giả sử hàm này chuẩn hóa URL
+  //   const mockSites: Site[] = baseUrls.map((url, i) => {
+  //     let status: SiteStatus = "success"; // mặc định thành công
+  //     status = "success";
+  //     return {
+  //       id: i + 1,
+  //       name: `Satellite Site ${i + 1}`,
+  //       status,
+  //       updatedAt: new Date(),
+  //       url,
+  //     };
+  //   });
+  //   setSites(mockSites);
+  // }, [newPost, satelliteUrls]);
+
+  // useEffect(() => {
+  //   if (!newPost) return;
+
+  //   const errorList = newPost.errorSatellite || [];
+  //   const baseUrls = handleParseUrl(errorList);
+  //   const mockSites: Site[] = baseUrls.map((url, i) => {
+  //     let status: SiteStatus = "failed";
+  //     status = "failed";
+  //     return {
+  //       id: i + 1,
+  //       name: `Satellite Site ${i + 1}`,
+  //       status,
+  //       updatedAt: new Date(),
+  //       url,
+  //     };
+  //   });
+  //   setSites(mockSites);
+  // }, [newPost, satelliteUrls]);
+
   const restartPublishing = () => {
     window.location.reload();
   };
@@ -180,21 +220,19 @@ const ProgressPage = () => {
               <CardTitle>Selected Post</CardTitle>
             </CardHeader>
             <CardContent>
-              {post || title ? (
+              {newPost ? (
                 <div className="flex flex-col space-y-2">
-                  <h3 className="font-semibold text-lg">
-                    {post.title || title}
-                  </h3>
+                  <h3 className="font-semibold text-lg">{newPost.title}</h3>
                   <p className="text-gray-600 text-sm line-clamp-2">
-                    {post.content ? post.content : ""}
+                    {newPost.content ? newPost.content : ""}
                   </p>
                   <a
-                    href={post.link}
+                    href={newPost.link}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:underline text-sm"
                   >
-                    {post.link}
+                    {newPost.link}
                   </a>
                 </div>
               ) : (

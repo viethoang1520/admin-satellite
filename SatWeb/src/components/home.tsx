@@ -8,6 +8,9 @@ import {
   Menu,
   X,
   User,
+  CheckCircle,
+  XCircle,
+  Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +38,8 @@ import PostForm from "./posts/PostForm";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import postStore from "@/store/postStore";
+import useSatelliteStore, { Satellite } from "@/store/satetillite";
+
 interface Post {
   id: string;
   title: string;
@@ -48,10 +53,17 @@ const Home = () => {
   const navigate = useNavigate();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
-  const posts = postStore((state) => state.posts);
-  const getPost = postStore((state) => state.getPost);
-  const getProgress = postStore((state) => state.getProgress);
+  const {
+    posts,
+    getPost,
+    getPostedPosts,
+    getProgress,
+    totalPublishedPosts,
+    getErrorPosts,
+    totalErrorPosts,
+  }: any = postStore();
   const [postsv2, setPostsv2] = useState(posts);
+  const { satellites, getSatellite } = useSatelliteStore();
   const scrollToPosts = () => {
     const postsSection = document.getElementById("posts-section");
     if (postsSection) {
@@ -59,8 +71,17 @@ const Home = () => {
     }
   };
   useEffect(() => {
-    getPost(); // gọi API khi component mount
+    getPost();
   }, [getPost]);
+
+  useEffect(() => {
+    getSatellite();
+  }, [getSatellite]);
+
+  useEffect(() => {
+    getPostedPosts();
+    getErrorPosts();
+  }, [posts]);
 
   const handleCreatePostClick = () => {
     navigate("/create-post");
@@ -126,7 +147,7 @@ const Home = () => {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100">
+    <div className="flex flex-col min-h-screen bg-[oklch(0.147 0.004 49.25)] ">
       {/* Main content */}
       <div className="flex-1 flex flex-col">
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
@@ -135,9 +156,9 @@ const Home = () => {
               <h1 className="text-2xl font-bold tracking-tight sm:hidden">
                 Quản lí bài viết
               </h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-black text-2xl font-bold tracking-tight hidden sm:block">
                 Quản lý và xuất bản bài viết của bạn lên các trang vệ tinh.
-              </p>
+              </h1>
             </div>
             <Button
               onClick={handleCreatePostClick}
@@ -148,8 +169,8 @@ const Home = () => {
             </Button>
           </div>
 
-          <div className="grid gap-6">
-            <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-2">
+            <div className="grid gap-2 md:grid-cols-4">
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium">
@@ -160,6 +181,61 @@ const Home = () => {
                   <div className="text-2xl font-bold">{posts.length}</div>
                   <p className="text-xs text-muted-foreground mt-1">
                     Bài viết đang hoạt động
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-green-600">
+                    Số bài viết đã đăng thành công
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {totalPublishedPosts}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Bài viết đang hoạt động
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-red-600">
+                    Số bài viết đã đăng thất bại
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{totalErrorPosts}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Bài viết đang hoạt động
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="relative overflow-hidden hover:shadow-md transition-all">
+                <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 rounded-md bg-blue-100 text-blue-600">
+                      <Globe className="h-5 w-5" />
+                    </div>
+                    <CardTitle className="text-sm font-medium">
+                      Số website vệ tinh đang có
+                    </CardTitle>
+                  </div>
+
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/viewSat" className="text-xs">
+                      Quản lý
+                    </Link>
+                  </Button>
+                </CardHeader>
+
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-700">
+                    {satellites?.length ?? 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Website đang hoạt động
                   </p>
                 </CardContent>
               </Card>

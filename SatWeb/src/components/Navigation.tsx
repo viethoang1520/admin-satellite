@@ -44,6 +44,12 @@ const Navigation = () => {
       icon: <LayoutDashboard className="h-5 w-5" />,
       action: () => navigate("/"),
     },
+    {
+      name: "Thêm website vệ tinh",
+      path: "/create-site",
+      icon: <LayoutDashboard className="h-5 w-5" />,
+      action: () => navigate("/create-site"),
+    },
   ];
   return (
     <div className="flex items-center justify-between h-16 px-4 bg-white border-b shadow-sm">

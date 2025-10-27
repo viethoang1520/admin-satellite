@@ -14,6 +14,8 @@ import { ToastContainer } from "react-toastify";
 import Navigation from "./components/Navigation";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { useAuthStore } from "./store/authStore";
+import CreateSite from "./pages/create-site";
+import ViewSat from "./pages/viewSat";
 function App() {
   // Initialize authentication
   const { isAuthenticated, isLoading } = useAuthStore();
@@ -55,6 +57,31 @@ function App() {
           element={
             <ProtectedRoute>
               <CreatePost />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/create-site"
+          element={
+            <ProtectedRoute>
+              <CreateSite />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/viewSat"
+          element={
+            <ProtectedRoute>
+              <ViewSat />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/viewSat/:id"
+          element={
+            <ProtectedRoute>
+              <CreateSite />
             </ProtectedRoute>
           }
         />
