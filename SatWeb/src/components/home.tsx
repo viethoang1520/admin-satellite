@@ -207,7 +207,7 @@ const Home = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    {totalErrorPosts && 0}
+                    {totalErrorPosts ? totalErrorPosts : 0}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
                     Bài viết đang hoạt động
