@@ -137,9 +137,7 @@ const PostTable = ({
             <TableRow className="bg-gray-50/50">
               <TableHead className="min-w-[200px]">Title</TableHead>
               <TableHead className="min-w-[300px]">Content Preview</TableHead>
-              <TableHead className="min-w-[150px]">Link</TableHead>
-              <TableHead className="w-24">Status</TableHead>
-              <TableHead className="w-64">Actions</TableHead>
+              <TableHead className="min-w-[150px]">Xem tiến trình</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -158,57 +156,43 @@ const PostTable = ({
                 </TableCell>
               </TableRow>
             ) : (
-              posts.map((post) => (
-                <TableRow key={post._id} className="hover:bg-gray-50/50">
-                  <TableCell>
-                    <div className="font-medium text-gray-900 leading-tight">
-                      {post.title}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm text-gray-600 leading-relaxed">
-                      {truncateContent(post.content)}
-                      {hasImages(post.content) && (
-                        <div className="mt-1">
-                          <Badge variant="outline" className="text-xs">
-                            Contains Images
-                          </Badge>
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {post.link ? (
-                      <a
-                        href={post.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 flex items-center text-sm group"
-                      >
-                        <span className="truncate max-w-[120px]">
-                          {post.link.replace(/^https?:\/\//, "")}
-                        </span>
-                        <ExternalLink className="ml-1 h-3 w-3 opacity-60 group-hover:opacity-100" />
-                      </a>
-                    ) : (
-                      <span className="text-gray-400 text-sm">No link</span>
-                    )}
-                  </TableCell>
-                  <TableCell>{getStatusBadge(post.status)}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-1">
-                      <Button
-                        size="sm"
-                        onClick={() => handlePublish(post)}
-                        className="h-8 px-3 bg-blue-600 hover:bg-blue-700"
-                      >
-                        <Send className="h-3 w-3 mr-1" />
-                        Xem tiến trình
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
+              posts
+                .slice() // tạo bản sao để không mutate mảng gốc
+                .sort((a, b) => b._id.localeCompare(a._id))
+                .map((post) => (
+                  <TableRow key={post._id} className="hover:bg-gray-50/50">
+                    <TableCell>
+                      <div className="font-medium text-gray-900 leading-tight">
+                        {post.title}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm text-gray-600 leading-relaxed">
+                        {truncateContent(post.content)}
+                        {hasImages(post.content) && (
+                          <div className="mt-1">
+                            <Badge variant="outline" className="text-xs">
+                              Contains Images
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="flex items-center space-x-1">
+                        <Button
+                          size="sm"
+                          onClick={() => handlePublish(post)}
+                          className="h-8 px-3 bg-blue-600 hover:bg-blue-700"
+                        >
+                          <Send className="h-3 w-3 mr-1" />
+                          Xem tiến trình
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
             )}
           </TableBody>
         </Table>

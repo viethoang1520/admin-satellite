@@ -10,9 +10,9 @@ import useSatelliteStore, { Satellite } from "@/store/satetillite";
 import { useParams } from "react-router";
 
 const settingsSchema = z.object({
-  url: z.string().url("Invalid URL"),
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  password: z.string().min(10, "Password must be at least 10 characters"),
+  url: z.string().url("URL không hợp lệ"),
+  username: z.string().min(3, "Username phải có ít nhất 3 ký tự"),
+  password: z.string().min(10, "Password phải có ít nhất 10 ký tự"),
 });
 
 type SettingsFormData = z.infer<typeof settingsSchema>;

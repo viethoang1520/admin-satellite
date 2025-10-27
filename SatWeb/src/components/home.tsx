@@ -48,8 +48,8 @@ const Home = () => {
     totalPublishedPosts,
     totalErrorPosts,
   }: any = postStore();
-  const { satellites, getSatellite } = useSatelliteStore();
 
+  const { satellites, getSatellite } = useSatelliteStore();
   const [postsv2, setPostsv2] = useState(posts);
 
   useEffect(() => {

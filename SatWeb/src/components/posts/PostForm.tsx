@@ -101,8 +101,6 @@ const PostForm = ({
           throw new Error("Yêu cầu thất bại");
         }
         const { newPost, satelliteUrls } = await response.json();
-        console.log("newPost trong post form", newPost);
-        console.log("satelliteUrls trong post form", satelliteUrls);
         setProgress({
           status: "success",
           message: "Tạo bài viết thành công!",
@@ -113,7 +111,6 @@ const PostForm = ({
         addPost(newPost);
         onSubmit(newPost);
         toast.dismiss(toastId);
-        toast.success("Tạo bài viết thành công!", { autoClose: 3000 });
         return newPost;
       });
     } catch (error) {

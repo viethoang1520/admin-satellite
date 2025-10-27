@@ -231,6 +231,13 @@ const ProgressPage = () => {
               >
                 <TabsList className="mb-4">
                   <TabsTrigger value="all">All ({sites.length})</TabsTrigger>
+                  <TabsTrigger value="success">
+                    Success (
+                    {sites.filter((s) => s.status === "success").length})
+                  </TabsTrigger>
+                  <TabsTrigger value="failed">
+                    Failed ({sites.filter((s) => s.status === "failed").length})
+                  </TabsTrigger>
                   <TabsTrigger value="pending">
                     Pending (
                     {sites.filter((s) => s.status === "pending").length})
@@ -239,28 +246,21 @@ const ProgressPage = () => {
                     In Progress (
                     {sites.filter((s) => s.status === "in-progress").length})
                   </TabsTrigger>
-                  <TabsTrigger value="success">
-                    Success (
-                    {sites.filter((s) => s.status === "success").length})
-                  </TabsTrigger>
-                  <TabsTrigger value="failed">
-                    Failed ({sites.filter((s) => s.status === "failed").length})
-                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="all" className="mt-0">
-                  <SitesList sites={filteredSites} />
-                </TabsContent>
-                <TabsContent value="pending" className="mt-0">
-                  <SitesList sites={filteredSites} />
-                </TabsContent>
-                <TabsContent value="in-progress" className="mt-0">
                   <SitesList sites={filteredSites} />
                 </TabsContent>
                 <TabsContent value="success" className="mt-0">
                   <SitesList sites={filteredSites} />
                 </TabsContent>
                 <TabsContent value="failed" className="mt-0">
+                  <SitesList sites={filteredSites} />
+                </TabsContent>
+                <TabsContent value="pending" className="mt-0">
+                  <SitesList sites={filteredSites} />
+                </TabsContent>
+                <TabsContent value="in-progress" className="mt-0">
                   <SitesList sites={filteredSites} />
                 </TabsContent>
               </Tabs>

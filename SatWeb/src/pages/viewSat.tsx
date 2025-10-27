@@ -4,39 +4,32 @@ import useSatelliteStore from "@/store/satetillite";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
-/**
- * Expected site item shape:
- * {
- *   id: number|string,
- *   url: string,
- *   username: string,
- *   password: string,
- *   note?: string
- * }
- *
- * Props:
- * - sites: array of site items (optional; fallback to mock)
- */
 const ViewSat = ({ sites: initialSites } = {}) => {
-  const [showPasswords, setShowPasswords] = useState(false);
-  const [copiedId, setCopiedId] = useState(null);
+  const [visiblePasswords, setVisiblePasswords] = useState<
+    Record<string, boolean>
+  >({});
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const { satellites, getSatellite } = useSatelliteStore();
 
   useEffect(() => {
     getSatellite();
   }, [getSatellite]);
-  console.log("Satellites from store:", satellites);
-  // fallback mock data (so file works standalone)
-  const mockSites = satellites || [];
 
   const sites =
     Array.isArray(initialSites) && initialSites.length
       ? initialSites
-      : mockSites;
+      : satellites || [];
 
-  const toggleShowPasswords = () => setShowPasswords((v) => !v);
+  // ✅ Toggle hiển thị mật khẩu của từng site
+  const togglePassword = (id: string | number) => {
+    setVisiblePasswords((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
 
-  const handleCopy = async (text, id) => {
+  // ✅ Copy text và hiển thị “Copied”
+  const handleCopy = async (text: string, id: string) => {
     try {
       await navigator.clipboard.writeText(text);
       setCopiedId(id);
@@ -46,8 +39,7 @@ const ViewSat = ({ sites: initialSites } = {}) => {
     }
   };
 
-  const openSite = (url) => {
-    // ensure url has protocol
+  const openSite = (url: string) => {
     const fixed =
       url.startsWith("http://") || url.startsWith("https://")
         ? url
@@ -62,20 +54,6 @@ const ViewSat = ({ sites: initialSites } = {}) => {
           <h2 className="text-xl font-semibold text-gray-900">
             Thông tin site vệ tinh
           </h2>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={toggleShowPasswords}
-              className="inline-flex items-center gap-2 px-3 py-1.5 border rounded-md text-sm bg-white hover:shadow-sm transition"
-              title={showPasswords ? "Hide passwords" : "Show passwords"}
-            >
-              {showPasswords ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
-              {showPasswords ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
-            </button>
-          </div>
         </div>
 
         <div className="overflow-x-auto bg-white border rounded-lg shadow-sm">
@@ -105,21 +83,16 @@ const ViewSat = ({ sites: initialSites } = {}) => {
 
             <tbody className="divide-y">
               {sites.map((s, idx) => (
-                <tr key={s.id ?? idx} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                    {idx + 1}
-                  </td>
+                <tr key={s.id ?? idx} className="hover:bg-gray-50 transition">
+                  <td className="px-4 py-3 text-sm text-gray-700">{idx + 1}</td>
 
-                  <td className="px-4 py-3 align-middle text-sm">
+                  <td className="px-4 py-3 text-sm">
                     <div className="flex items-center gap-2">
                       <a
                         href={s.url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-600 hover:underline truncate max-w-[320px]"
-                        onClick={(e) => {
-                          // allow link but also prevent double-handling
-                        }}
                       >
                         {s.url}
                       </a>
@@ -136,7 +109,7 @@ const ViewSat = ({ sites: initialSites } = {}) => {
                     )}
                   </td>
 
-                  <td className="px-4 py-3 align-middle text-sm">
+                  <td className="px-4 py-3 text-sm">
                     <div className="flex items-center gap-2">
                       <span className="truncate max-w-[160px]">
                         {s.username}
@@ -154,11 +127,26 @@ const ViewSat = ({ sites: initialSites } = {}) => {
                     )}
                   </td>
 
-                  <td className="px-4 py-3 align-middle text-sm">
+                  <td className="px-4 py-3 text-sm">
                     <div className="flex items-center gap-2">
                       <code className="block truncate max-w-[200px] bg-gray-100 px-2 py-1 rounded">
-                        {showPasswords ? s.password : "•".repeat(8)}
+                        {visiblePasswords[s.id] ? s.password : "•".repeat(8)}
                       </code>
+                      <button
+                        onClick={() => togglePassword(s.id)}
+                        className="p-1 rounded-md hover:bg-gray-100"
+                        title={
+                          visiblePasswords[s.id]
+                            ? "Ẩn mật khẩu"
+                            : "Hiện mật khẩu"
+                        }
+                      >
+                        {visiblePasswords[s.id] ? (
+                          <EyeOff className="h-4 w-4 text-gray-500" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-gray-500" />
+                        )}
+                      </button>
                       <button
                         onClick={() => handleCopy(s.password, `pass-${s.id}`)}
                         className="p-1 rounded-md hover:bg-gray-100"
@@ -172,23 +160,20 @@ const ViewSat = ({ sites: initialSites } = {}) => {
                     )}
                   </td>
 
-                  <td className="px-4 py-3 align-middle text-sm text-gray-600">
+                  <td className="px-4 py-3 text-sm text-gray-600">
                     <Button>
                       <Link to={`/viewSat/${s._id}`}>Xem chi tiết</Link>
                     </Button>
                   </td>
 
-                  <td className="px-4 py-3 align-middle text-right">
-                    <div className="inline-flex items-center gap-2">
-                      <button
-                        onClick={() => openSite(s.url)}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 text-sm border rounded-md bg-white hover:shadow-sm transition"
-                        title="Open site"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        Mở
-                      </button>
-                    </div>
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      onClick={() => openSite(s.url)}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 text-sm border rounded-md bg-white hover:shadow-sm transition"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Mở
+                    </button>
                   </td>
                 </tr>
               ))}
