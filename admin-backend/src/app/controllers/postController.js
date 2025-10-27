@@ -74,7 +74,7 @@ const createNewPost = async (req, res) => {
     const updatedPost = await Post.findById(newPost._id);
     return res.status(201).json({ newPost: updatedPost, satelliteUrls });
   } catch (error) {
-    return res.status(500).json({error: error.message});
+    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -115,16 +115,17 @@ const pushToSatelliteWebsite = async (newPost, storeImg) => {
     });
 
     for (const satellite of satellites) {
+      console.log(`🚀 Pushing post to satellite: ${satellite.url}`);
+      console.log('satellites:', satellites)
       const siteMatch = Object.values(storeImg).find((site) =>
         satellite.url.includes(new URL(site.baseUrl).hostname)
       );
 
       if (!siteMatch) {
         console.log(`⚠️ Không tìm thấy site tương ứng cho ${satellite.url}`);
-        // update errorSatellite array in Post model
         await Post.findByIdAndUpdate(
           newPost._id,
-          { $push: { errorSatellite: satellite.url } },
+          { $push: { errorSatellite: { url: satellite.url, errorCode: 404 } } },
           { new: true }
         );
         continue;
@@ -144,8 +145,17 @@ const pushToSatelliteWebsite = async (newPost, storeImg) => {
       };
 
       queue.add(async () => {
-        const res = await postToSatellite(satellite, post);
-        return res;
+        try {
+          const res = await postToSatellite(satellite, post);
+          return res;
+        } catch (error) {
+          console.log("Error status:", error.status);
+          await Post.findByIdAndUpdate(
+            newPost._id,
+            { $push: { errorSatellite: { url: satellite.url, errorCode: error.status } } },
+            { new: true }
+          );
+        }
       });
     }
 
