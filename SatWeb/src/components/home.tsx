@@ -206,7 +206,9 @@ const Home = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{totalErrorPosts}</div>
+                  <div className="text-2xl font-bold">
+                    {totalErrorPosts && 0}
+                  </div>
                   <p className="text-xs text-muted-foreground mt-1">
                     Bài viết đang hoạt động
                   </p>

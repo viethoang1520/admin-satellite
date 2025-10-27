@@ -111,7 +111,7 @@ const CreateSite = () => {
               {editMode && (
                 <Button
                   type="submit"
-                  className="bg-primary-600 text-white hover:bg-primary-700"
+                  className="bg-primary-600 hover:bg-primary-700"
                 >
                   Lưu thay đổi
                 </Button>
