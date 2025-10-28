@@ -20,15 +20,12 @@ const ViewSat = ({ sites: initialSites } = {}) => {
       ? initialSites
       : satellites || [];
 
-  // ✅ Mỗi dòng dùng id duy nhất
   const getUniqueId = (s: any, idx: number) => s._id || s.id || idx;
 
-  // ✅ Toggle hiển thị mật khẩu (chỉ 1 site)
   const togglePassword = (uniqueId: string | number) => {
     setVisiblePasswordId((prev) => (prev === uniqueId ? null : uniqueId));
   };
 
-  // ✅ Copy text và hiển thị “Copied”
   const handleCopy = async (text: string, id: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -39,7 +36,6 @@ const ViewSat = ({ sites: initialSites } = {}) => {
     }
   };
 
-  // ✅ Mở site trong tab mới
   const openSite = (url: string) => {
     const fixed =
       url.startsWith("http://") || url.startsWith("https://")

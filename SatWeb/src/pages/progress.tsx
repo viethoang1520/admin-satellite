@@ -8,7 +8,6 @@ import postStore from "@/store/postStore";
 import { useSearchParams } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
-import urlsWp from "@/state/sites";
 import useProgressStore from "@/store/progress";
 import { set } from "date-fns";
 import { stripHtmlTags } from "@/lib/utils";
@@ -91,7 +90,7 @@ const ProgressPage = () => {
       case 500:
         return "Lỗi máy chủ nội bộ – Có sự cố xảy ra trên máy chủ.";
       default:
-        return `Lỗi không xác định (Mã ${code})`;
+        return `Lỗi không xác định (Kiểm tra lại thông tin website)`;
     }
   };
   // Filter sites based on status

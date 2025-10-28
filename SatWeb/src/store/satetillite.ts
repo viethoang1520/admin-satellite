@@ -9,6 +9,7 @@ export interface Satellite {
   url: string;
   username: string;
   password: string;
+  status: string;
 }
 
 interface SatelliteStore {
@@ -64,6 +65,7 @@ const useSatelliteStore = create<SatelliteStore>((set) => ({
         toast.success("Thêm mới vệ tinh thành công!");
       }
     } catch (error) {
+      toast.error("Thêm mới vệ tinh thất bại!");
       console.error(
         "Add satellite error",
         error?.response?.data || error.message || error

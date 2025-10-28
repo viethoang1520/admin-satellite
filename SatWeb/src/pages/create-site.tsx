@@ -60,8 +60,9 @@ const CreateSite = () => {
   const onSubmit = async (data: SettingsFormData) => {
     if (!sat) {
       await addNewSatellite(data as Satellite);
+    } else {
+      await updateSatellite(sat._id, data as Satellite);
     }
-    await updateSatellite(sat._id, data as Satellite);
   };
   return (
     <div className="mt-10 max-w-3xl mx-auto">

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -22,6 +22,7 @@ import wpSites from "@/state/wpSite";
 import useProgressStore from "@/store/progress";
 import { CheckCircle, Loader2, UploadCloud } from "lucide-react";
 import { PerformanceDisplay } from "@/components/ui/PerformanceDisplay";
+import useSatelliteStore from "@/store/satetillite";
 
 const formSchema = z.object({
   title: z
@@ -55,15 +56,38 @@ const PostForm = ({
   const { addPost } = postStore();
   const { setProgress } = useProgressStore();
   const { measureAsync, clearMetrics, metrics } = usePerformanceMonitor();
+  const { getSatellite, satellites } = useSatelliteStore();
+  interface SatelliteAccount {
+    _id: string;
+    username: string;
+    password: string;
+    url: string;
+    status: string;
+    img: string[];
+  }
 
-  const storeImg = useRef({
-    siteA: {
-      name: "SiteA",
-      baseUrl: "https://canho-bconssolary.com/",
-      img: [],
-    },
-    siteB: { name: "SiteB", baseUrl: "https://aquacityvn.com/", img: [] },
+  const storeImgTemp = satellites.map((site) => {
+    return {
+      _id: site._id || "",
+      username: site.username,
+      password: site.password,
+      url: site.url,
+      status: site.status || "pending",
+      img: [] as string[],
+    };
   });
+
+  const storeImg = useRef<SatelliteAccount[]>({ ...storeImgTemp });
+
+  useEffect(() => {
+    getSatellite();
+  }, []);
+
+  useEffect(() => {
+    storeImg.current = {
+      ...storeImgTemp,
+    };
+  }, [satellites]);
 
   const defaultValues: FormValues = initialValues || {
     title: "",
@@ -91,25 +115,22 @@ const PostForm = ({
     const fakeStep = async (message: string, percent: number, delay = 1000) => {
       let icon, color;
       if (percent < 40) {
-        icon = <Loader2 className="animate-spin text-blue-500" />;
+        icon = "";
         color = "bg-blue-50";
       } else if (percent < 70) {
-        icon = <UploadCloud className="text-amber-500 animate-pulse" />;
+        icon = "";
         color = "bg-amber-50";
       } else {
-        icon = <CheckCircle className="text-green-500" />;
+        icon = "";
         color = "bg-green-50";
       }
 
       setProgress({ status: "in-progress", message, percent });
       toast.update(toastId, {
         render: (
-          <div className={`flex items-center gap-3 ${color} p-2 rounded-md`}>
-            {icon}
-            <span className="font-medium text-gray-800">{message}</span>
-            <span className="ml-auto font-semibold text-primary-600">
-              {percent}%
-            </span>
+          <div className={`flex items-center gap-3 ${color} rounded-md w-full`}>
+            <span className="text-gray-800">{message}</span>
+            <span className="ml-auto text-primary-600">{percent}%</span>
           </div>
         ),
         type: "info",
@@ -120,9 +141,9 @@ const PostForm = ({
     };
 
     // ⚙️ Gọi từng bước
-    await fakeStep("🧩 Đang xử lý nội dung bài viết...", 25);
-    await fakeStep("🖼️ Đang tải ảnh và dữ liệu liên quan...", 45);
-    await fakeStep("📡 Đang gửi yêu cầu đến máy chủ...", 65);
+    await fakeStep("Đang xử lý nội dung bài viết...", 25);
+    await fakeStep("Đang tải ảnh và dữ liệu...", 45);
+    await fakeStep("Gửi yêu cầu đến máy chủ...", 65);
 
     navigate("/progress");
     setUploading(true);
@@ -141,7 +162,7 @@ const PostForm = ({
         const { newPost, satelliteUrls } = await response.json();
         setProgress({
           status: "success",
-          message: "🎉 Tạo bài viết thành công!",
+          message: "Tạo bài viết thành công!",
           percent: 100,
           newPost,
           satelliteUrls,
@@ -150,7 +171,7 @@ const PostForm = ({
         addPost(newPost);
         onSubmit(newPost);
         toast.update(toastId, {
-          render: "✅ Tạo bài viết thành công!",
+          render: "Tạo bài viết thành công!",
           type: "success",
           autoClose: 2500,
         });
@@ -166,27 +187,33 @@ const PostForm = ({
 
   // Upload ảnh lên nhiều WordPress site
   const uploadImageToMultipleWordPress = async (file: File) => {
-    const uploadPromises = wpSites.map(async (site) => {
-      const url = `${site.baseUrl}/wp-json/wp/v2/media`;
-      const appPassword = site.appPassword.replace(/\s+/g, "");
+    const uploadPromises = satellites.map(async (site) => {
+      let count = 0;
+      const url = `${site.url}/wp-json/wp/v2/media`;
+      const appPassword = site.password.replace(/\s+/g, "");
       const formData = new FormData();
       formData.append("file", file, file.name);
-
       const auth = btoa(`${site.username}:${appPassword}`);
+      console.log("Uploading to", appPassword);
+
       const res = await fetch(url, {
         method: "POST",
         headers: { Authorization: `Basic ${auth}` },
         body: formData,
       });
 
-      if (!res.ok) throw new Error(`Upload failed for ${site.name}`);
+      if (!res.ok) {
+        toast.error(`Upload ảnh lên ${site.url} thất bại!`);
+        toast.error(`số trang thất bại là ${++count}`);
+      }
       const data = await res.json();
 
-      if (site.name === "SiteA")
-        storeImg.current.siteA.img.push(data.source_url);
-      else if (site.name === "SiteB")
-        storeImg.current.siteB.img.push(data.source_url);
-
+      storeImg.current.map((c) => {
+        if (c.url.includes(site.url)) {
+          c.img.push(data.source_url);
+        }
+      });
+      console.log("storeImg after upload", storeImg.current);
       return { site: site.name, link: data.source_url };
     });
     return await Promise.all(uploadPromises);
