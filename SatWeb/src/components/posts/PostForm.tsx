@@ -77,16 +77,14 @@ const PostForm = ({
     };
   });
 
-  const storeImg = useRef<SatelliteAccount[]>({ ...storeImgTemp });
+  const storeImg = useRef<SatelliteAccount[]>([...storeImgTemp]);
 
   useEffect(() => {
     getSatellite();
   }, []);
 
   useEffect(() => {
-    storeImg.current = {
-      ...storeImgTemp,
-    };
+    storeImg.current = [...storeImgTemp];
   }, [satellites]);
 
   const defaultValues: FormValues = initialValues || {
@@ -111,7 +109,6 @@ const PostForm = ({
       percent: 10,
     });
 
-    // 🎨 Hàm giả lập từng giai đoạn chuyên nghiệp
     const fakeStep = async (message: string, percent: number, delay = 1000) => {
       let icon, color;
       if (percent < 40) {
@@ -179,7 +176,7 @@ const PostForm = ({
       });
     } catch (error) {
       toast.dismiss(toastId);
-      toast.error("❌ Tạo bài viết thất bại!", { autoClose: 3000 });
+      toast.error("Tạo bài viết thất bại!", { autoClose: 3000 });
     } finally {
       setUploading(false);
     }
@@ -187,39 +184,51 @@ const PostForm = ({
 
   // Upload ảnh lên nhiều WordPress site
   const uploadImageToMultipleWordPress = async (file: File) => {
+    console.log("Uploading to site:", satellites);
+    console.log("Uploading to file:", file);
     const uploadPromises = satellites.map(async (site) => {
       let count = 0;
-      const url = `${site.url}/wp-json/wp/v2/media`;
+      const url = `${site.url}wp-json/wp/v2/media`;
       const appPassword = site.password.replace(/\s+/g, "");
       const formData = new FormData();
       formData.append("file", file, file.name);
       const auth = btoa(`${site.username}:${appPassword}`);
       console.log("Uploading to", appPassword);
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { Authorization: `Basic ${auth}` },
+          body: formData,
+        });
 
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { Authorization: `Basic ${auth}` },
-        body: formData,
-      });
+        console.log("Upload response:", res);
+        if (!res.ok) {
+          toast.error(`Upload ảnh lên ${site.url} thất bại!`);
+          toast.error(`số trang thất bại là ${++count}`);
+          return null;
+        }
+        const data = await res.json();
+        console.log("Upload data:", data);
 
-      if (!res.ok) {
+        storeImg.current = storeImg.current.map((c) => {
+          if (c.url.includes(site.url)) {
+            return { ...c, img: [...c.img, data.source_url] };
+          }
+          return c;
+        });
+
+        console.log("storeImg after upload", storeImg.current);
+        return { link: data.source_url };
+      } catch (error) {
+        console.error("Upload error:", error);
         toast.error(`Upload ảnh lên ${site.url} thất bại!`);
         toast.error(`số trang thất bại là ${++count}`);
+        return null;
       }
-      const data = await res.json();
-
-      storeImg.current.map((c) => {
-        if (c.url.includes(site.url)) {
-          c.img.push(data.source_url);
-        }
-      });
-      console.log("storeImg after upload", storeImg.current);
-      return { site: site.name, link: data.source_url };
     });
     return await Promise.all(uploadPromises);
   };
 
-  // TinyMCE file picker
   const file_picker_callback = (callback, value, meta) => {
     if (meta.filetype === "image") {
       const input = document.createElement("input");
@@ -228,11 +237,29 @@ const PostForm = ({
 
       input.onchange = async function () {
         const file = (this as HTMLInputElement).files?.[0];
-        if (file) {
+        if (!file) return;
+
+        try {
           const results = await uploadImageToMultipleWordPress(file);
-          callback(results[0].link, { alt: file.name });
+
+          const validResults = Array.isArray(results)
+            ? results.filter((r) => r && r.link)
+            : [];
+
+          if (validResults.length === 0) {
+            console.warn("Không có site nào upload thành công.");
+            alert("Không thể upload ảnh lên bất kỳ site nào.");
+            return;
+          }
+
+          const firstResult = validResults[0];
+
+          callback(firstResult.link, { alt: file.name });
+        } catch (err) {
+          alert("Upload ảnh thất bại. Vui lòng thử lại.");
         }
       };
+
       input.click();
     }
   };
@@ -345,7 +372,7 @@ const PostForm = ({
                 Hủy
               </Button>
               <Button disabled={uploading} type="submit">
-                {isEditing ? "💾 Lưu thay đổi" : "🚀 Tạo bài viết"}
+                {isEditing ? "Lưu thay đổi" : "Tạo bài viết"}
               </Button>
             </div>
           </form>
