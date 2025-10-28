@@ -116,9 +116,9 @@ const pushToSatelliteWebsite = async (newPost, storeImg) => {
 
     for (const satellite of satellites) {
       console.log(`🚀 Pushing post to satellite: ${satellite.url}`);
-      console.log('satellites:', satellites)
+      console.log("satellites:", satellites);
       const siteMatch = Object.values(storeImg).find((site) =>
-        satellite.url.includes(new URL(site.baseUrl).hostname)
+        satellite.url.includes(new URL(site.url).hostname)
       );
 
       if (!siteMatch) {
@@ -132,11 +132,7 @@ const pushToSatelliteWebsite = async (newPost, storeImg) => {
       }
 
       let newContent = newPost.content;
-      newContent = replaceImageLinks(
-        newContent,
-        siteMatch.baseUrl,
-        satellite.url
-      );
+      newContent = replaceImageLinks(newContent, siteMatch.url, satellite.url);
 
       const post = {
         title: newPost.title,
@@ -152,7 +148,11 @@ const pushToSatelliteWebsite = async (newPost, storeImg) => {
           console.log("Error status:", error.status);
           await Post.findByIdAndUpdate(
             newPost._id,
-            { $push: { errorSatellite: { url: satellite.url, errorCode: error.status } } },
+            {
+              $push: {
+                errorSatellite: { url: satellite.url, errorCode: error.status },
+              },
+            },
             { new: true }
           );
         }
