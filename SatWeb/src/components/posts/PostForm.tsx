@@ -337,7 +337,14 @@ const PostForm = ({
                           const urls = await uploadImageToMultipleWordPress(
                             file
                           );
-                          return urls[0].link;
+                          const valid = Array.isArray(urls)
+                            ? urls.filter((r) => r && r.link)
+                            : [];
+                          if (valid.length === 0)
+                            throw new Error(
+                              "Không có site nào upload thành công"
+                            );
+                          return valid[0].link;
                         },
                         automatic_uploads: true,
                         file_picker_types: "image",
