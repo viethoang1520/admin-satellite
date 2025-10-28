@@ -25,20 +25,9 @@ import PostTable from "./posts/PostTable";
 import PostForm from "./posts/PostForm";
 import postStore from "@/store/postStore";
 import useSatelliteStore from "@/store/satetillite";
-
-interface Post {
-  id: string;
-  title: string;
-  content: string;
-  link: string;
-  image?: string;
-  status?: "draft" | "published" | "failed";
-}
-
+import { Post } from "../../index";
 const Home = () => {
   const navigate = useNavigate();
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingPost, setEditingPost] = useState<Post | null>(null);
 
   const {
     posts,
@@ -47,10 +36,9 @@ const Home = () => {
     getErrorPosts,
     totalPublishedPosts,
     totalErrorPosts,
-  }: any = postStore();
+  } = postStore();
 
   const { satellites, getSatellite } = useSatelliteStore();
-  const [postsv2, setPostsv2] = useState(posts);
 
   useEffect(() => {
     getPost();
@@ -67,43 +55,6 @@ const Home = () => {
 
   const handleCreatePostClick = () => {
     navigate("/create-post");
-  };
-
-  const handleEditPost = (post: Post) => {
-    setEditingPost(post);
-    setIsEditDialogOpen(true);
-  };
-
-  const handleUpdatePost = (values: any) => {
-    if (editingPost) {
-      setPostsv2((prev) =>
-        prev.map((post) =>
-          post.id === editingPost.id
-            ? {
-                ...post,
-                title: values.title,
-                content: values.content,
-                link: values.link || "",
-                image: values.image || "",
-              }
-            : post
-        )
-      );
-      setIsEditDialogOpen(false);
-      setEditingPost(null);
-    }
-  };
-
-  const handleDeletePost = (postId: string) => {
-    setPostsv2((prev) => prev.filter((post) => post.id !== postId));
-  };
-
-  const handlePublishPost = (postId: string) => {
-    setPostsv2((prev) =>
-      prev.map((post) =>
-        post.id === postId ? { ...post, status: "published" as const } : post
-      )
-    );
   };
 
   return (
@@ -218,35 +169,11 @@ const Home = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <PostTable
-                posts={posts}
-                onDelete={handleDeletePost}
-                onPublish={handlePublishPost}
-              />
+              <PostTable posts={posts} />
             </CardContent>
           </Card>
         </main>
       </div>
-
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Chỉnh sửa bài viết</DialogTitle>
-          </DialogHeader>
-          {editingPost && (
-            <PostForm
-              initialValues={{
-                title: editingPost.title,
-                content: editingPost.content,
-                link: editingPost.link,
-              }}
-              onSubmit={handleUpdatePost}
-              isEditing={true}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

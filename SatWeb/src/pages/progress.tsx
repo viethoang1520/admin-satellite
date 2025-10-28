@@ -11,7 +11,8 @@ import { toast } from "react-toastify";
 import urlsWp from "@/state/sites";
 import useProgressStore from "@/store/progress";
 import { set } from "date-fns";
-
+import { stripHtmlTags } from "@/lib/utils";
+import { any } from "zod";
 type SiteStatus = "pending" | "in-progress" | "success" | "failed";
 
 interface Site {
@@ -20,14 +21,7 @@ interface Site {
   status: SiteStatus;
   updatedAt: Date;
   url: string;
-}
-
-interface Post {
-  id: number;
-  title: string;
-  content: string;
-  link: string;
-  urls: string[];
+  msg: string;
 }
 
 const ProgressPage = () => {
@@ -53,40 +47,53 @@ const ProgressPage = () => {
     getPost();
   }, []);
 
-  const handleParseUrl = (urls: string[]) => {
-    const baseUrls = urls.map((url) => {
-      const parsed = new URL(url);
-      return `${parsed.protocol}//${parsed.hostname}`;
-    });
-    return baseUrls;
-  };
   useEffect(() => {
     if (!newPost && !post) return;
+
     const postedList = realPost.postedSatellite || [];
     const errorList = realPost.errorSatellite || [];
 
-    // Gộp cả 2 mảng lại
-    const allSites = [...postedList, ...errorList];
-
-    // Map ra danh sách sites kèm trạng thái đúng
-    const mockSites: Site[] = allSites.map((url, i) => {
-      const isSuccess = postedList.includes(allSites[i]);
-      const status: SiteStatus = isSuccess ? "success" : "failed";
-      return {
+    const allSites: Site[] = [
+      ...postedList.map((url: string, i: number) => ({
         id: i + 1,
         name: `Satellite Site ${i + 1}`,
-        status,
+        status: "success" as SiteStatus,
         updatedAt: new Date(),
         url,
-      };
-    });
+        msg: "",
+      })),
+      ...errorList.map((err: any, i: number) => ({
+        id: postedList.length + i + 1,
+        name: `Satellite Site ${postedList.length + i + 1}`,
+        status: "failed" as SiteStatus,
+        updatedAt: new Date(),
+        url: err.url,
+        msg: getErrorMessage(err.errorCode),
+      })),
+    ];
 
-    setSites(mockSites);
+    setSites(allSites);
   }, [newPost, satelliteUrls, post]);
+
   const restartPublishing = () => {
     window.location.reload();
   };
-
+  const getErrorMessage = (code: number) => {
+    switch (code) {
+      case 400:
+        return "Yêu cầu không hợp lệ – Máy chủ không hiểu được yêu cầu.";
+      case 401:
+        return "Chưa xác thực – Vui lòng kiểm tra thông tin đăng nhập.";
+      case 403:
+        return "Bị cấm – Bạn không có quyền truy cập tài nguyên này.";
+      case 404:
+        return "Không tìm thấy trang web – Tài nguyên yêu cầu không tồn tại.";
+      case 500:
+        return "Lỗi máy chủ nội bộ – Có sự cố xảy ra trên máy chủ.";
+      default:
+        return `Lỗi không xác định (Mã ${code})`;
+    }
+  };
   // Filter sites based on status
   const filteredSites =
     activeFilter === "all"
@@ -131,6 +138,7 @@ const ProgressPage = () => {
               >
                 {site.url}
               </a>
+              <p className="text-red-500">{site.msg}</p>
             </div>
           </div>
         </div>
@@ -164,7 +172,7 @@ const ProgressPage = () => {
               className="flex items-center bg-black text-white gap-2"
             >
               <RefreshCw className="h-4 w-4" />
-              Restart Publishing
+              Restart
             </Button>
           </div>
 
@@ -178,7 +186,7 @@ const ProgressPage = () => {
                 <div className="flex flex-col space-y-2">
                   <h3 className="font-semibold text-lg">{realPost.title}</h3>
                   <p className="text-gray-600 text-sm line-clamp-2">
-                    {realPost.content ? realPost.content : ""}
+                    {realPost.content ? stripHtmlTags(realPost.content) : ""}
                   </p>
                   <a
                     href={realPost.link}
@@ -217,7 +225,7 @@ const ProgressPage = () => {
           </Card>
 
           {/* Site Status List */}
-          <Card className="bg-white">
+          <Card className="bg-white sm:flex flex-col">
             <CardHeader>
               <CardTitle>Satellite Sites</CardTitle>
             </CardHeader>
@@ -238,11 +246,17 @@ const ProgressPage = () => {
                   <TabsTrigger value="failed">
                     Failed ({sites.filter((s) => s.status === "failed").length})
                   </TabsTrigger>
-                  <TabsTrigger value="pending">
+                  <TabsTrigger
+                    value="pending"
+                    className="hidden sm:inline-flex"
+                  >
                     Pending (
                     {sites.filter((s) => s.status === "pending").length})
                   </TabsTrigger>
-                  <TabsTrigger value="in-progress">
+                  <TabsTrigger
+                    value="in-progress"
+                    className="hidden sm:inline-flex"
+                  >
                     In Progress (
                     {sites.filter((s) => s.status === "in-progress").length})
                   </TabsTrigger>

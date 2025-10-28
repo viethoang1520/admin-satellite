@@ -1,23 +1,28 @@
 import { create } from "zustand";
 import axios from "axios";
+import { Post } from "../../index";
 axios.defaults.baseURL = `${import.meta.env.VITE_API_BASE_URL}`;
-type Post = {
-  id: string;
-  title: string;
-  content: string;
-  totalSatellite: number;
-  postedSatellite: string[];
-  errorSatellite: string[];
-  successfulRate: number;
-};
-const postStore = create((set) => ({
+
+interface postStore {
+  posts: Post[];
+  totalPublishedPosts: number;
+  totalErrorPosts: number;
+  addPost: (post: Post) => void;
+  removePost: (postId: string) => void;
+  getPost: () => void;
+  getPostedPosts: () => Promise<Post[]>;
+  getErrorPosts: () => Promise<Post[]>;
+  getProgress: (postTitle: string) => Promise<number>;
+}
+
+const postStore = create<postStore>((set) => ({
   posts: [],
   totalPublishedPosts: 0,
   totalErrorPosts: 0,
   addPost: (post) => set((state) => ({ posts: [...state.posts, post] })),
   removePost: (postId) =>
     set((state) => ({
-      posts: state.posts.filter((post) => post.id !== postId),
+      posts: state.posts.filter((post) => post._id !== postId),
     })),
   getPost: async () => {
     try {

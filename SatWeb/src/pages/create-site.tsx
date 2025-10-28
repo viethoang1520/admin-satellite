@@ -24,18 +24,25 @@ interface SettingsFormProps {
 
 const CreateSite = () => {
   const [editMode, setEditMode] = useState(false);
-  const { getSatellite, satellites, loading, addNewSatellite } =
-    useSatelliteStore();
+  const {
+    getSatellite,
+    satellites,
+    loading,
+    addNewSatellite,
+    updateSatellite,
+  } = useSatelliteStore();
   const { id } = useParams();
   useEffect(() => {
     getSatellite();
   }, [getSatellite]);
   const sat = satellites.find((s) => s._id === id);
+
   const initialData: SettingsFormData = {
     url: sat ? sat.url : "",
     username: sat ? sat.username : "",
     password: sat ? sat.password : "",
   };
+
   const form = useForm<SettingsFormData>({
     resolver: zodResolver(settingsSchema),
     defaultValues: initialData,
@@ -51,9 +58,10 @@ const CreateSite = () => {
     setEditMode(false);
   };
   const onSubmit = async (data: SettingsFormData) => {
-    // Xử lý lưu dữ liệu ở đây
-    await addNewSatellite(data as Satellite);
-    console.log("Submitted data:", data);
+    if (!sat) {
+      await addNewSatellite(data as Satellite);
+    }
+    await updateSatellite(sat._id, data as Satellite);
   };
   return (
     <div className="mt-10 max-w-3xl mx-auto">

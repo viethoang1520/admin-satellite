@@ -23,17 +23,19 @@ import {
   FileText,
   Eye,
 } from "lucide-react";
+import { Post } from "../../../index";
+// interface Post {
+//   _id: string;
+//   title: string;
+//   content: string;
+//   link: string;
+//   status?: "draft" | "published" | "failed";
+// }
 
-interface Post {
-  _id: string;
-  title: string;
-  content: string;
-  link: string;
-  status?: "draft" | "published" | "failed";
-}
 import { useSearchParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { title } from "process";
+import { stripHtmlTags } from "@/lib/utils";
 interface PostTableProps {
   posts?: Post[];
   onEdit?: (post: Post) => void;
@@ -59,72 +61,13 @@ const PostTable = ({
     navigate(`/progress`, { state: { post } });
   };
 
-  const confirmDelete = (postId: string) => {
-    setPostToDelete(postId);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleDeleteConfirm = () => {
-    if (postToDelete) {
-      onDelete(postToDelete);
-      setDeleteDialogOpen(false);
-      setPostToDelete(null);
-    }
-  };
-
-  const handlePreview = (post: Post) => {
-    setPreviewPost(post);
-    setPreviewDialogOpen(true);
-  };
-
-  const getStatusBadge = (status?: string) => {
-    switch (status) {
-      case "published":
-        return (
-          <Badge className="bg-green-500 hover:bg-green-600">Published</Badge>
-        );
-      case "failed":
-        return <Badge variant="destructive">Failed</Badge>;
-      default:
-        return <Badge variant="outline">Draft</Badge>;
-    }
-  };
-
   const truncateContent = (content: string, maxLength = 100) => {
-    // Remove markdown image syntax for preview
     const textOnly = stripHtmlTags(content);
-    // const textOnly = content.replace(
-    //   /!\[([^\]]*)\]\(([^)]+)\)/g,
-    //   "[Image: $1]"
-    // );
     return textOnly.length > maxLength
       ? `${textOnly.substring(0, maxLength)}...`
       : textOnly;
   };
 
-  const renderContentPreview = (content: string) => {
-    // Simple markdown-to-HTML conversion for images
-    const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
-
-    return content.split("\n").map((line, index) => {
-      const processedLine = line.replace(imageRegex, (match, alt, src) => {
-        return `<img src="${src}" alt="${alt}" style="max-width: 100%; height: auto; margin: 10px 0; border-radius: 8px;" />`;
-      });
-
-      return (
-        <div key={index} className="mb-2">
-          <span dangerouslySetInnerHTML={{ __html: processedLine }} />
-        </div>
-      );
-    });
-  };
-  const stripHtmlTags = (html: string): string => {
-    const text = html.replace(/<[^>]*>/g, "").trim();
-    const parser = new DOMParser();
-    const decoded = parser.parseFromString(text, "text/html").documentElement
-      .textContent;
-    return decoded || "";
-  };
   const hasImages = (content: string) => {
     return /!\[([^\]]*)\]\(([^)]+)\)/g.test(content);
   };
@@ -187,7 +130,7 @@ const PostTable = ({
                           className="h-8 px-3 bg-blue-600 hover:bg-blue-700"
                         >
                           <Send className="h-3 w-3 mr-1" />
-                          Xem tiến trình
+                          Xem tiến trình bài viết
                         </Button>
                       </div>
                     </TableCell>
@@ -197,39 +140,6 @@ const PostTable = ({
           </TableBody>
         </Table>
       </div>
-
-      {/* Content Preview Dialog */}
-      <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{previewPost?.title}</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            {previewPost && (
-              <div className="prose max-w-none">
-                {renderContentPreview(previewPost.content)}
-              </div>
-            )}
-            {previewPost?.link && (
-              <div className="mt-4 pt-4 border-t">
-                <p className="text-sm text-gray-600 mb-2">Related Link:</p>
-                <a
-                  href={previewPost.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 flex items-center"
-                >
-                  {previewPost.link}
-                  <ExternalLink className="ml-1 h-4 w-4" />
-                </a>
-              </div>
-            )}
-          </div>
-          <div className="flex justify-end">
-            <Button onClick={() => setPreviewDialogOpen(false)}>Close</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

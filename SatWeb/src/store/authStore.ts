@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { loginService } from "../service/authService";
 import { toast } from "react-toastify";
+import { AuthState } from "../../index";
 export interface User {
   id: string;
   username: string;
@@ -11,16 +12,6 @@ export interface User {
 export interface response {
   error: boolean;
   message?: string;
-}
-
-interface AuthState {
-  isAuthenticated: boolean;
-  user: User | null;
-  isLoading: boolean;
-  login: (username: string, password: string) => Promise<response | undefined>;
-  logout: () => void;
-  setLoading: (loading: boolean) => void;
-  updateUser: (userData: Partial<User>) => void;
 }
 
 export const useAuthStore = create<AuthState>()(

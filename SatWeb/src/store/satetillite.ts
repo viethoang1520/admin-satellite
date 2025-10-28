@@ -18,6 +18,7 @@ interface SatelliteStore {
   getSatellite: () => Promise<void>;
   removeSatellite: (satelliteId: number) => void;
   addNewSatellite: (satellite: Satellite) => Promise<void>;
+  updateSatellite: (satID: string, satellite: Satellite) => Promise<void>;
 }
 
 const useSatelliteStore = create<SatelliteStore>((set) => ({
@@ -65,6 +66,31 @@ const useSatelliteStore = create<SatelliteStore>((set) => ({
     } catch (error) {
       console.error(
         "Add satellite error",
+        error?.response?.data || error.message || error
+      );
+    } finally {
+      set({ loading: false });
+    }
+  },
+  updateSatellite: async (satID: string, satellite: Satellite) => {
+    try {
+      set({ loading: true });
+      const res = await axios.patch(`/api/satellite/${satID}`, satellite, {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      });
+
+      if (res.status === 200) {
+        set((state) => ({
+          satellites: state.satellites.map((sat) =>
+            sat._id === satID ? res.data.satellite : sat
+          ),
+        }));
+        toast.success("Cập nhật vệ tinh thành công!");
+      }
+    } catch (error) {
+      console.error(
+        "Update satellite error",
         error?.response?.data || error.message || error
       );
     } finally {

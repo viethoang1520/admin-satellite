@@ -1,13 +1,6 @@
 import { create } from "zustand";
-type Post = {
-  id: string;
-  title: string;
-  content: string;
-  totalSatellite: number;
-  postedSatellite: string[];
-  errorSatellite: string[];
-  successfulRate: number;
-};
+import { Post } from "../../index";
+
 interface ProgressState {
   status: "idle" | "in-progress" | "success" | "error";
   message: string;

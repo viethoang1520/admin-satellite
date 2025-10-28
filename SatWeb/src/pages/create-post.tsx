@@ -3,29 +3,23 @@ import { useNavigate } from "react-router-dom";
 import PostForm from "@/components/posts/PostForm";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-
-interface Post {
-  id: string;
-  title: string;
-  content: string;
-  urls: string[];
-}
+import { Post } from "../../index";
+// interface Post {
+//   id: string;
+//   title: string;
+//   content: string;
+//   urls: string[];
+// }
 
 const CreatePost = () => {
   const navigate = useNavigate();
 
   const handleCreatePost = (values: any) => {
     const newPost: Post = {
-      id: Date.now().toString(),
       title: values.title,
       content: values.content,
-      urls: values.urls,
     };
 
-    // In a real app, you would save this to your backend/state management
-    console.log("Creating post:", newPost);
-
-    // Navigate back to home page
     navigate("/progress", { state: { post: newPost } });
   };
 
