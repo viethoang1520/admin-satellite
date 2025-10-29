@@ -96,6 +96,7 @@ const getOverallProgress = async (req, res) => {
   }
 }
 
+// DONE: Update satellite details
 const updateSatellite = async (req, res) => {
   try {
     const { id } = req.params;
