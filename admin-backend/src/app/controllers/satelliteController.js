@@ -4,7 +4,7 @@ const Post = require("../models/Post");
 // DONE: Get all satellites
 const getAllSatellites = async (req, res) => {
   try {
-    const satellites = await Satellite.find({status: 'ACTIVE'});
+    const satellites = await Satellite.find({ status: 'ACTIVE' });
     return res.status(200).json({ satellites });
   } catch (error) {
     return res.status(500).json({ error });
@@ -57,7 +57,7 @@ const getNumberOfPublishedPosts = async (req, res) => {
   }
 }
 
-// DONE: Get number of published posts across all satellites
+// DONE: Get number of error posts across all satellites
 const getNumberOfErrorPosts = async (req, res) => {
   try {
     const result = await Post.aggregate([
@@ -81,6 +81,7 @@ const getNumberOfErrorPosts = async (req, res) => {
   }
 }
 
+// DONE: Get overall progress of all posts
 const getOverallProgress = async (req, res) => {
   try {
     const posts = await Post.find({ successfulRate: { $ne: 0 } });
@@ -99,21 +100,29 @@ const updateSatellite = async (req, res) => {
   try {
     const { id } = req.params;
     const { url, username, password } = req.body;
+
+    const satellite = await Satellite.findById(id);
+    if (!satellite) {
+      return res.status(404).json({ message: "Satellite not found" });
+    }
+
     const updatedSatellite = await Satellite.findByIdAndUpdate(
       id,
       { url, username, password },
       { new: true }
     );
-    if (!updatedSatellite) {
-      return res.status(404).json({ message: "Satellite not found" });
-    }
-    res.status(200).json({ satellite: updatedSatellite });
+
+    res.status(200).json({
+      message: "Satellite updated successfully",
+      satellite: updatedSatellite
+    });
   } catch (error) {
-    res.status(500).json({ error });
+    console.error("Error updating satellite:", error);
+    res.status(500).json({ message: "Internal server error", error });
   }
 };
 
-const deleteSatellite = async (req, res) => { 
+const deleteSatellite = async (req, res) => {
   try {
     const { id } = req.params;
     const deletedSatellite = await Satellite.findByIdAndUpdate(

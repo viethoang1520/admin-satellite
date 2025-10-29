@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 
 const ErrorSatellite = new mongoose.Schema({
-  url: { type: String, required: true },
+  satelliteId: { type: mongoose.Schema.Types.ObjectId, ref: 'satellite' },
   errorCode: { type: Number, required: true },
 })
 

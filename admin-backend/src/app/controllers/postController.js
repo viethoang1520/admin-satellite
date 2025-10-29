@@ -2,6 +2,7 @@ const Post = require("../models/Post");
 const Satellite = require("../models/Satellite");
 const getQueue = require("../../config/queue/pqueue");
 const { postToSatellite } = require("../../apis/post");
+const { convertErrorSatelliteToUrls } = require("../../utils/satelliteUtils");
 
 const getAllPosts = async (req, res) => {
   try {
@@ -59,7 +60,7 @@ const createNewPost = async (req, res) => {
       newPost,
       storeImg
     );
-    
+    console.log("satellite Urls: ", satelliteUrls)
     if (satelliteUrls.length === 0) {
       return res
         .status(500)
@@ -71,7 +72,9 @@ const createNewPost = async (req, res) => {
       { successfulRate },
       { new: true }
     );
-    const updatedPost = await Post.findById(newPost._id);
+    const post = await Post.findById(newPost._id);
+    const updatedPost = await convertErrorSatelliteToUrls(post);
+    console.log("updated Post: ", updatedPost)
     return res.status(201).json({ newPost: updatedPost, satelliteUrls });
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -125,7 +128,7 @@ const pushToSatelliteWebsite = async (newPost, storeImg) => {
         console.log(`⚠️ Không tìm thấy site tương ứng cho ${satellite.url}`);
         await Post.findByIdAndUpdate(
           newPost._id,
-          { $push: { errorSatellite: { url: satellite.url, errorCode: 404 } } },
+          { $push: { errorSatellite: { satelliteId: satellite._id, errorCode: 404 } } },
           { new: true }
         );
         continue;
@@ -150,7 +153,10 @@ const pushToSatelliteWebsite = async (newPost, storeImg) => {
             newPost._id,
             {
               $push: {
-                errorSatellite: { url: satellite.url, errorCode: error.status },
+                errorSatellite: {
+                  satelliteId: satellite._id,
+                  errorCode: error.status
+                },
               },
             },
             { new: true }
