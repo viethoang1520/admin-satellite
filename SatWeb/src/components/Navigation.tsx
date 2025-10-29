@@ -6,6 +6,8 @@ import {
   FolderKanban,
   LogOut,
   LogIn,
+  FolderOutput,
+  FolderPen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -39,10 +41,16 @@ const Navigation = () => {
       icon: <FolderKanban className="h-5 w-5" />,
       action: () => navigate("/viewSat"),
     },
+    {
+      name: "Hướng dẫn lấy App Password",
+      path: "/help/app-password",
+      icon: <FolderPen className="h-5 w-5" />,
+      action: () => navigate("/help/app-password"),
+    },
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-gradient-to-r from-blue-50 via-white to-blue-50 border-b border-gray-200 shadow-sm">
+    <header className="hidden sm:block sticky top-0 z-50 bg-gradient-to-r from-blue-50 via-white to-blue-50 border-b border-gray-200 shadow-sm">
       <div className="flex items-center justify-between h-16 px-4 md:px-8">
         {/* Logo */}
         <h1 className="text-xl font-bold text-black tracking-tight">

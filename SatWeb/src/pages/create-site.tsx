@@ -23,7 +23,6 @@ interface SettingsFormProps {
 }
 
 const CreateSite = () => {
-  const [editMode, setEditMode] = useState(false);
   const {
     getSatellite,
     satellites,
@@ -32,11 +31,24 @@ const CreateSite = () => {
     updateSatellite,
   } = useSatelliteStore();
   const { id } = useParams();
+  let sat;
+  if (id) {
+    sat = satellites.find((s) => s._id === id);
+  }
+  const [editMode, setEditMode] = useState(sat ? false : true);
+
   useEffect(() => {
     getSatellite();
   }, [getSatellite]);
-  const sat = satellites.find((s) => s._id === id);
-
+  useEffect(() => {
+    return () => {
+      form.reset({
+        url: "",
+        username: "",
+        password: "",
+      });
+    };
+  }, []);
   const initialData: SettingsFormData = {
     url: sat ? sat.url : "",
     username: sat ? sat.username : "",
@@ -65,7 +77,7 @@ const CreateSite = () => {
     }
   };
   return (
-    <div className="mt-10 max-w-3xl mx-auto">
+    <div className="mt-10  max-w-3xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
           <Globe className="w-6 h-6 text-primary-600" />
@@ -117,7 +129,7 @@ const CreateSite = () => {
                 {editMode ? "Hủy" : "Chỉnh sửa"}
               </Button>
 
-              {editMode && <Button type="submit">Lưu thay đổi</Button>}
+              {editMode && <Button type="submit">Lưu</Button>}
             </div>
           </form>
         </Form>

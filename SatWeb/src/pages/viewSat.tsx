@@ -53,7 +53,8 @@ const ViewSat = ({ sites: initialSites } = {}) => {
           </h2>
         </div>
 
-        <div className="overflow-x-auto bg-white border rounded-lg shadow-sm">
+        {/* Desktop table */}
+        <div className="hidden md:block overflow-x-auto bg-white border rounded-lg shadow-sm">
           <table className="min-w-full divide-y">
             <thead className="bg-gray-50">
               <tr>
@@ -83,7 +84,6 @@ const ViewSat = ({ sites: initialSites } = {}) => {
                 const uid = getUniqueId(s, idx);
                 return (
                   <tr key={uid} className="hover:bg-gray-50 transition">
-                    {/* STT */}
                     <td className="px-4 py-3 text-sm text-gray-700">
                       {idx + 1}
                     </td>
@@ -188,7 +188,6 @@ const ViewSat = ({ sites: initialSites } = {}) => {
                 );
               })}
 
-              {/* Không có dữ liệu */}
               {sites.length === 0 && (
                 <tr>
                   <td
@@ -201,6 +200,63 @@ const ViewSat = ({ sites: initialSites } = {}) => {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile cards */}
+        <div className="md:hidden divide-y">
+          {sites.map((s, idx) => {
+            const uid = getUniqueId(s, idx);
+            return (
+              <div
+                key={uid}
+                className="bg-white p-4 mb-3 rounded-lg border shadow-sm"
+              >
+                <div className="flex justify-between mb-2">
+                  <span className=" text-gray-800">
+                    <span className="font-bold">Username:</span>{" "}
+                    <span className="">{s.username}</span>
+                  </span>
+                  <button
+                    onClick={() => openSite(s.url)}
+                    className="text-blue-600 text-sm flex items-center gap-1"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    Mở
+                  </button>
+                </div>
+                <div className="text-sm text-gray-700 mb-1">
+                  <span className="font-medium">URL:</span>{" "}
+                  <a
+                    href={s.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 break-all"
+                  >
+                    {s.url}
+                  </a>
+                </div>
+                <div className="text-sm text-gray-700 mb-1">
+                  <span className="font-medium">Password:</span>{" "}
+                  {visiblePasswordId === uid ? s.password : "••••••••"}
+                  <button
+                    onClick={() => togglePassword(uid)}
+                    className="ml-2 text-gray-500"
+                  >
+                    {visiblePasswordId === uid ? (
+                      <EyeOff className="h-4 w-4 inline" />
+                    ) : (
+                      <Eye className="h-4 w-4 inline" />
+                    )}
+                  </button>
+                </div>
+                <div className="text-right mt-2">
+                  <Button asChild size="sm">
+                    <Link to={`/viewSat/${uid}`}>Chi tiết</Link>
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

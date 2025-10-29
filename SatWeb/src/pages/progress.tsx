@@ -140,6 +140,7 @@ const ProgressPage = () => {
               <p className="text-red-500">{site.msg}</p>
             </div>
           </div>
+          {site.status === "failed" && <Button className="">Đăng lại</Button>}
         </div>
       ))}
 
