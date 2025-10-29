@@ -59,12 +59,12 @@ const createNewPost = async (req, res) => {
       newPost,
       storeImg
     );
+    
     if (satelliteUrls.length === 0) {
       return res
         .status(500)
         .json({ message: "Failed to push to satellite websites" });
     }
-
     const successfulRate = progress / totalSatellite;
     await Post.findByIdAndUpdate(
       newPost._id,
@@ -100,8 +100,10 @@ const pushToSatelliteWebsite = async (newPost, storeImg) => {
     let progress = 0;
 
     queue.on("completed", async (result) => {
-      if (result?.data?.link) satelliteUrls.push(result.data.link);
-      progress += 1;
+      if (result?.data?.link) {
+        satelliteUrls.push(result.data.link);
+        progress += 1;
+      }
       if (satelliteUrls.length !== 0) {
         await Post.findOneAndUpdate(
           { _id: newPost._id },
@@ -115,10 +117,8 @@ const pushToSatelliteWebsite = async (newPost, storeImg) => {
     });
 
     for (const satellite of satellites) {
-      console.log(`🚀 Pushing post to satellite: ${satellite.url}`);
-      console.log("satellites:", satellites);
       const siteMatch = Object.values(storeImg).find((site) =>
-        satellite.url.includes(new URL(site.url).hostname)
+        satellite.url.includes(new URL(site.url))
       );
 
       if (!siteMatch) {
@@ -145,7 +145,7 @@ const pushToSatelliteWebsite = async (newPost, storeImg) => {
           const res = await postToSatellite(satellite, post);
           return res;
         } catch (error) {
-          console.log("Error status:", error.status);
+          console.log("Error status:", error?.status);
           await Post.findByIdAndUpdate(
             newPost._id,
             {
