@@ -23,6 +23,7 @@ import useProgressStore from "@/store/progress";
 import { CheckCircle, Loader2, UploadCloud } from "lucide-react";
 import { PerformanceDisplay } from "@/components/ui/PerformanceDisplay";
 import useSatelliteStore from "@/store/satetillite";
+import { checkSitesFast } from "@/lib/utils";
 
 const formSchema = z.object({
   title: z
@@ -82,6 +83,15 @@ const PostForm = ({
   useEffect(() => {
     getSatellite();
   }, []);
+
+  // useEffect(() => {
+  //   async function runCheck() {
+  //     const results = await checkSitesFast(satellites);
+  //     console.log("Kết quả kiểm tra:", results);
+  //   }
+
+  //   runCheck();
+  // }, [satellites]);
 
   useEffect(() => {
     storeImg.current = [...storeImgTemp];
@@ -184,41 +194,40 @@ const PostForm = ({
 
   // Upload ảnh lên nhiều WordPress site
   const uploadImageToMultipleWordPress = async (file: File) => {
-    console.log("Uploading to site:", satellites);
-    console.log("Uploading to file:", file);
     const uploadPromises = satellites.map(async (site) => {
+      console.log("Uploading to:", site.url);
       let count = 0;
       const url = `${site.url}wp-json/wp/v2/media`;
       const appPassword = site.password.replace(/\s+/g, "");
       const formData = new FormData();
       formData.append("file", file, file.name);
       const auth = btoa(`${site.username}:${appPassword}`);
-      console.log("Uploading to", appPassword);
       try {
-        const res = await fetch(url, {
-          method: "POST",
-          headers: { Authorization: `Basic ${auth}` },
-          body: formData,
-        });
+        let data = null;
+        const check = await fetch(url, { method: "HEAD" });
+        console.log("Check response:", check);
+        if (check.ok) {
+          const res = await fetch(url, {
+            method: "POST",
+            headers: { Authorization: `Basic ${auth}` },
+            body: formData,
+          });
 
-        console.log("Upload response:", res);
-        if (!res.ok) {
-          toast.error(`Upload ảnh lên ${site.url} thất bại!`);
-          toast.error(`số trang thất bại là ${++count}`);
-          return null;
-        }
-        const data = await res.json();
-        console.log("Upload data:", data);
-
-        storeImg.current = storeImg.current.map((c) => {
-          if (c.url.includes(site.url)) {
-            return { ...c, img: [...c.img, data.source_url] };
+          if (!res.ok) {
+            toast.error(`Upload ảnh lên ${site.url} thất bại!`);
+            toast.error(`số trang thất bại là ${++count}`);
+            return null;
           }
-          return c;
-        });
-
-        console.log("storeImg after upload", storeImg.current);
-        return { link: data.source_url };
+          data = await res.json();
+          console.log("Upload response data:", data);
+          storeImg.current = storeImg.current.map((c) => {
+            if (c.url.includes(site.url)) {
+              return { ...c, img: [...c.img, data.source_url] };
+            }
+            return c;
+          });
+        }
+        return { link: data?.source_url };
       } catch (error) {
         console.error("Upload error:", error);
         toast.error(`Upload ảnh lên ${site.url} thất bại!`);
@@ -337,6 +346,7 @@ const PostForm = ({
                           const urls = await uploadImageToMultipleWordPress(
                             file
                           );
+                          console.log("Uploaded URLs:", urls);
                           const valid = Array.isArray(urls)
                             ? urls.filter((r) => r && r.link)
                             : [];

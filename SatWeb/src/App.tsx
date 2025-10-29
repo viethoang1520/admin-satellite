@@ -16,6 +16,8 @@ import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { useAuthStore } from "./store/authStore";
 import CreateSite from "./pages/create-site";
 import ViewSat from "./pages/viewSat";
+import Sidebar from "./components/sidebar";
+import GetAppPasswordPage from "./pages/GetAppPasswordPage";
 function App() {
   // Initialize authentication
   const { isAuthenticated, isLoading } = useAuthStore();
@@ -32,7 +34,12 @@ function App() {
 
   return (
     <Suspense fallback={<p>Đang tải...</p>}>
-      {isAuthenticated && <Navigation />}
+      {isAuthenticated && (
+        <>
+          <Navigation /> {/* Sidebar cho desktop */}
+          <Sidebar /> {/* Sidebar cho mobile */}
+        </>
+      )}
 
       <Routes>
         <Route path="/login" element={<LoginPage />} />
@@ -82,6 +89,14 @@ function App() {
           element={
             <ProtectedRoute>
               <CreateSite />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/help/app-password"
+          element={
+            <ProtectedRoute>
+              <GetAppPasswordPage />
             </ProtectedRoute>
           }
         />

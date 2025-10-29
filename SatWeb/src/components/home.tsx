@@ -65,10 +65,10 @@ const Home = () => {
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-1">
+              <h1 className="sm:text-3xl text-2xl font-bold tracking-tight text-gray-900 mb-1">
                 Quản lý bài viết
               </h1>
-              <p className="text-sm text-gray-500">
+              <p className="hidden sm:block text-sm text-gray-500">
                 Tạo, chỉnh sửa và xuất bản bài viết lên các website vệ tinh của
                 bạn.
               </p>
