@@ -24,16 +24,13 @@ const postStore = create<PostStore>()(
       totalPublishedPosts: 0,
       totalErrorPosts: 0,
 
-      // ✅ Thêm post mới vào danh sách
       addPost: (post) => set((state) => ({ posts: [...state.posts, post] })),
 
-      // ✅ Xóa post khỏi danh sách
       removePost: (postId) =>
         set((state) => ({
           posts: state.posts.filter((post) => post._id !== postId),
         })),
 
-      // ✅ Lấy toàn bộ post từ server
       getPost: async () => {
         try {
           const res = await axios.get(`/api/post`, {
@@ -51,7 +48,6 @@ const postStore = create<PostStore>()(
         }
       },
 
-      // ✅ Theo dõi tiến độ đăng bài
       getProgress: async (postTitle) => {
         try {
           const res = await axios.get(`/api/post/track-progress`, {
@@ -68,7 +64,6 @@ const postStore = create<PostStore>()(
         }
       },
 
-      // ✅ Lấy các bài đã đăng thành công
       getPostedPosts: async () => {
         try {
           const res = await axios.get(`/api/satellite/published-posts`, {
@@ -87,7 +82,6 @@ const postStore = create<PostStore>()(
         }
       },
 
-      // ✅ Lấy các bài bị lỗi
       getErrorPosts: async () => {
         try {
           const res = await axios.get(`/api/satellite/error-posts`, {
@@ -107,7 +101,7 @@ const postStore = create<PostStore>()(
       },
     }),
     {
-      name: "post-storage", // 👈 key trong localStorage
+      name: "post-storage",
       partialize: (state) => ({
         // chỉ lưu phần cần thiết
         posts: state.posts,

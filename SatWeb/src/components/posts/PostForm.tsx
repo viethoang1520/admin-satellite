@@ -152,9 +152,6 @@ const PostForm = ({
     await fakeStep("Đang tải ảnh và dữ liệu...", 45);
     await fakeStep("Gửi yêu cầu đến máy chủ...", 65);
 
-    navigate("/progress");
-    setUploading(true);
-
     try {
       await measureAsync("Tạo bài viết mới", async () => {
         const url = `${import.meta.env.VITE_API_BASE_URL}/api/post`;
@@ -167,6 +164,8 @@ const PostForm = ({
         if (!response.ok) throw new Error("Yêu cầu thất bại");
 
         const { newPost, satelliteUrls } = await response.json();
+
+        addPost(newPost);
         setProgress({
           status: "success",
           message: "Tạo bài viết thành công!",
@@ -174,14 +173,14 @@ const PostForm = ({
           newPost,
           satelliteUrls,
         });
-
-        addPost(newPost);
         onSubmit(newPost);
         toast.update(toastId, {
           render: "Tạo bài viết thành công!",
           type: "success",
           autoClose: 2500,
         });
+        navigate("/progress", { state: { post: newPost } });
+        setUploading(true);
         return newPost;
       });
     } catch (error) {

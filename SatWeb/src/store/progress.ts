@@ -1,38 +1,31 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { Post } from "../../index";
 
 interface ProgressState {
-  status: string;
+  status: "idle" | "in-progress" | "success" | "error";
   message: string;
   percent: number;
-  newPost: any | null;
-  satelliteUrls: string[];
+  newPost?: Post;
+  satelliteUrls?: string[];
   setProgress: (data: Partial<ProgressState>) => void;
-  resetProgress: () => void;
+  reset: () => void;
 }
 
-const useProgressStore = create<ProgressState>()(
-  persist(
-    (set) => ({
-      status: "",
+const useProgressStore = create<ProgressState>((set) => ({
+  status: "idle",
+  message: "",
+  percent: 0,
+  newPost: undefined,
+  satelliteUrls: undefined,
+  setProgress: (data) => set((state) => ({ ...state, ...data })),
+  reset: () =>
+    set({
+      status: "idle",
       message: "",
       percent: 0,
-      newPost: null,
-      satelliteUrls: [],
-      setProgress: (data) => set((state) => ({ ...state, ...data })),
-      resetProgress: () =>
-        set({
-          status: "",
-          message: "",
-          percent: 0,
-          newPost: null,
-          satelliteUrls: [],
-        }),
+      newPost: undefined,
+      satelliteUrls: undefined,
     }),
-    {
-      name: "progress-storage", // tên key trong localStorage
-    }
-  )
-);
+}));
 
 export default useProgressStore;

@@ -27,19 +27,13 @@ const ProgressPage = () => {
   const [activeFilter, setActiveFilter] = useState<SiteStatus | "all">("all");
 
   const posts = postStore((state) => state.posts);
+  const addPost = postStore((state) => state.addPost);
   const getPost = postStore((state) => state.getPost);
-  const { newPost, satelliteUrls } = useProgressStore();
+  const { satelliteUrls } = useProgressStore();
   const location = useLocation();
   const post = location.state?.post;
-
-  const realPost = useMemo(() => {
-    const found = posts.find((p) => p._id === newPost?._id);
-    return found || post || null;
-  }, [posts, newPost, post]);
-
-  useEffect(() => {
-    if (newPost?._id) getPost();
-  }, [newPost?._id]);
+  const newPost = location.state?.newPost;
+  const realPost = posts.find((p) => p._id === newPost?._id) || post;
 
   useEffect(() => {
     if (realPost) {
