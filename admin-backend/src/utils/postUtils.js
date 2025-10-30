@@ -34,4 +34,5 @@ const generateVariations = async (content) => {
   }
 
 }
+
 module.exports = { generateVariations }
