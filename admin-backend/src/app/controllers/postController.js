@@ -40,7 +40,6 @@ const trackProgress = async (req, res) => {
 };
 const createNewPost = async (req, res) => {
   try {
-    console.log("Request Body:", JSON.stringify(req.body, null, 2));
     const { values, storeImg } = req.body;
     const { title, content } = values;
     const totalSatellite = await Satellite.countDocuments();
