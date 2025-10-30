@@ -90,8 +90,6 @@ function replaceImageLinks(content, baseUrlOld, baseUrlNew) {
 }
 
 const pushToSatelliteWebsite = async (newPost, storeImg, progress = 0) => {
-  console.log("newPost: ", newPost)
-  console.log("storeImg: ", storeImg)
   try {
     const satellites = await Satellite.find();
     if (!satellites.length) {
