@@ -11,8 +11,8 @@ import { useParams } from "react-router";
 
 const settingsSchema = z.object({
   url: z.string().url("URL không hợp lệ"),
-  username: z.string().min(3, "Username phải có ít nhất 3 ký tự"),
-  password: z.string().min(10, "Password phải có ít nhất 10 ký tự"),
+  username: z.string(),
+  password: z.string(),
 });
 
 type SettingsFormData = z.infer<typeof settingsSchema>;
@@ -40,15 +40,16 @@ const CreateSite = () => {
   useEffect(() => {
     getSatellite();
   }, [getSatellite]);
-  useEffect(() => {
-    return () => {
-      form.reset({
-        url: "",
-        username: "",
-        password: "",
-      });
-    };
-  }, []);
+
+  // useEffect(() => {
+  //   return () => {
+  //     form.reset({
+  //       url: "",
+  //       username: "",
+  //       password: "",
+  //     });
+  //   };
+  // }, []);
   const initialData: SettingsFormData = {
     url: sat ? sat.url : "",
     username: sat ? sat.username : "",
@@ -73,6 +74,7 @@ const CreateSite = () => {
     if (!sat) {
       await addNewSatellite(data as Satellite);
     } else {
+      console.log("Updating satellite:", sat._id, data);
       await updateSatellite(sat._id, data as Satellite);
     }
   };

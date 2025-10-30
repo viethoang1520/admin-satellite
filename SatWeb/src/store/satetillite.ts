@@ -91,6 +91,7 @@ const useSatelliteStore = create<SatelliteStore>((set) => ({
         toast.success("Cập nhật vệ tinh thành công!");
       }
     } catch (error) {
+      toast.error("Cập nhật vệ tinh thất bại!");
       console.error(
         "Update satellite error",
         error?.response?.data || error.message || error
