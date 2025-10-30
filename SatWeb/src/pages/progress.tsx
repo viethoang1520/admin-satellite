@@ -9,6 +9,8 @@ import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import useProgressStore from "@/store/progress";
 import { stripHtmlTags } from "@/lib/utils";
+import useSatelliteStore from "@/store/satetillite";
+import { get } from "http";
 
 type SiteStatus = "pending" | "in-progress" | "success" | "failed";
 
@@ -29,24 +31,47 @@ const ProgressPage = () => {
   const posts = postStore((state) => state.posts);
   const addPost = postStore((state) => state.addPost);
   const getPost = postStore((state) => state.getPost);
+  const getPostById = postStore((state) => state.getPostById);
   const { satelliteUrls } = useProgressStore();
+  const { satellites } = useSatelliteStore();
   const location = useLocation();
   const post = location.state?.post;
   const newPost = location.state?.newPost;
-  const realPost = posts.find((p) => p._id === newPost?._id) || post;
+
+  const realPost = useMemo(() => {
+    return posts.find((p) => p._id === newPost?._id) || post;
+  }, [posts, newPost, post, satellites]);
+
+  const [realPostv2, setRealPostv2] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    getPost();
+  }, [satellites]);
 
   useEffect(() => {
-    if (realPost) {
-      const rate = realPost.successfulRate || 0;
+    const fetchPost = async () => {
+      if (!realPost._id) return;
+      setLoading(true);
+      const result = await getPostById(realPost._id);
+      if (result) setRealPostv2(result);
+      setLoading(false);
+    };
+
+    fetchPost();
+  }, [realPost._id, getPostById]);
+
+  useEffect(() => {
+    if (realPostv2) {
+      const rate = realPostv2.successfulRate || 0;
       setOverallProgress(Number((rate * 100).toFixed(1)));
     }
-  }, [realPost]);
+  }, [realPostv2]);
 
   useEffect(() => {
-    if (!realPost) return;
+    if (!realPostv2) return;
 
-    const postedList = realPost.postedSatellite || [];
-    const errorList = realPost.errorSatellite || [];
+    const postedList = realPostv2.postedSatellite || [];
+    const errorList = realPostv2.errorSatellite || [];
 
     const allSites: Site[] = [
       ...postedList.map((url: string, i: number) => ({
@@ -68,7 +93,7 @@ const ProgressPage = () => {
     ];
 
     setSites(allSites);
-  }, [realPost, satelliteUrls]);
+  }, [realPostv2, satelliteUrls]);
 
   const restartPublishing = async () => {
     toast.info("Đang làm mới dữ liệu...");
@@ -205,7 +230,7 @@ const ProgressPage = () => {
               )}
             </CardContent>
           </Card>
-          {/* Overall Progress */}x
+          {/* Overall Progress */}
           <Card>
             <CardHeader>
               <CardTitle>Overall Progress</CardTitle>

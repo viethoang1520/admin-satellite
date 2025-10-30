@@ -25,7 +25,6 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
         try {
           const response = await loginService(username, password);
-          console.log("AuthStore login response:", response.error);
           if (response.error) {
             set({ isLoading: false });
           } else {
@@ -37,8 +36,6 @@ export const useAuthStore = create<AuthState>()(
           return response;
         } catch (error) {
           set({ isLoading: false });
-          console.log("AuthStore login error:", error);
-          console.error("Login error:", error);
         }
       },
 

@@ -74,7 +74,6 @@ const CreateSite = () => {
     if (!sat) {
       await addNewSatellite(data as Satellite);
     } else {
-      console.log("Updating satellite:", sat._id, data);
       await updateSatellite(sat._id, data as Satellite);
     }
   };

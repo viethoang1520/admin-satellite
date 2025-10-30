@@ -66,10 +66,6 @@ const useSatelliteStore = create<SatelliteStore>((set) => ({
       }
     } catch (error) {
       toast.error("Thêm mới vệ tinh thất bại!");
-      console.error(
-        "Add satellite error",
-        error?.response?.data || error.message || error
-      );
     } finally {
       set({ loading: false });
     }
@@ -92,10 +88,6 @@ const useSatelliteStore = create<SatelliteStore>((set) => ({
       }
     } catch (error) {
       toast.error("Cập nhật vệ tinh thất bại!");
-      console.error(
-        "Update satellite error",
-        error?.response?.data || error.message || error
-      );
     } finally {
       set({ loading: false });
     }

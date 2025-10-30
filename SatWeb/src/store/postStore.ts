@@ -15,6 +15,7 @@ interface PostStore {
   getPostedPosts: () => Promise<Post[] | void>;
   getErrorPosts: () => Promise<Post[] | void>;
   getProgress: (postTitle: string) => Promise<number | void>;
+  getPostById: (postId: string) => Promise<Post | void>;
 }
 
 const postStore = create<PostStore>()(
@@ -39,6 +40,22 @@ const postStore = create<PostStore>()(
           });
           if (res.status === 200 && res.data?.allPosts) {
             set({ posts: res.data.allPosts });
+          }
+        } catch (error: any) {
+          console.error(
+            "Get post error:",
+            error?.response?.data || error.message || error
+          );
+        }
+      },
+      getPostById: async (postId: string) => {
+        try {
+          const res = await axios.get(`/api/post/${postId}`, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+          });
+          if (res.status === 200 && res.data?.post) {
+            return res.data.post;
           }
         } catch (error: any) {
           console.error(

@@ -109,7 +109,7 @@ const Home = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-green-700">
-                  {totalPublishedPosts}
+                  {totalPublishedPosts || 0}
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
                   Đăng thành công lên website vệ tinh
