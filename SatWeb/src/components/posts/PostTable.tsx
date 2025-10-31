@@ -24,14 +24,6 @@ import {
   Eye,
 } from "lucide-react";
 import { Post } from "../../../index";
-// interface Post {
-//   _id: string;
-//   title: string;
-//   content: string;
-//   link: string;
-//   status?: "draft" | "published" | "failed";
-// }
-
 import { useSearchParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { title } from "process";
@@ -57,7 +49,6 @@ const PostTable = ({
 
   const handlePublish = (post: Post) => {
     onPublish(post._id);
-    console.log("Navigating to progress page for post:", post);
     navigate(`/progress`, { state: { post } });
   };
 

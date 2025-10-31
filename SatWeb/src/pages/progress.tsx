@@ -136,7 +136,7 @@ const ProgressPage = () => {
     <div className="space-y-4">
       {sites.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
-          Không có site nào phù hợp với bộ lọc
+          Đã xảy ra lỗi hoặc không có trang vệ tinh để hiển thị.
         </div>
       ) : (
         sites.map((site) => (
@@ -239,7 +239,9 @@ const ProgressPage = () => {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-sm font-medium">
-                    {overallProgress ? `${overallProgress}% Complete` : 0}
+                    {overallProgress
+                      ? `${overallProgress}% Complete`
+                      : "0% Complete"}
                   </span>
                   <span className="text-sm text-gray-500">
                     {sites.filter((s) => s.status === "success").length} /{" "}

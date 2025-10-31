@@ -121,7 +121,10 @@ const PostForm = ({
 
     const fakeStep = async (message: string, percent: number, delay = 1000) => {
       let icon, color;
-      if (percent < 40) {
+      if (percent < 20) {
+        icon = "";
+        color = "bg-red-200";
+      } else if (percent < 40) {
         icon = "";
         color = "bg-blue-50";
       } else if (percent < 70) {
@@ -141,7 +144,7 @@ const PostForm = ({
           </div>
         ),
         type: "info",
-        autoClose: false,
+        autoClose: 3000,
       });
 
       await new Promise((res) => setTimeout(res, delay));
@@ -153,36 +156,23 @@ const PostForm = ({
     await fakeStep("Gửi yêu cầu đến máy chủ...", 65);
 
     try {
-      await measureAsync("Tạo bài viết mới", async () => {
-        const url = `${import.meta.env.VITE_API_BASE_URL}/api/post`;
-        const response = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ values, storeImg: storeImg.current }),
-        });
-
-        if (!response.ok) throw new Error("Yêu cầu thất bại");
-
-        const { newPost, satelliteUrls } = await response.json();
-
-        addPost(newPost);
-        setProgress({
-          status: "success",
-          message: "Tạo bài viết thành công!",
-          percent: 100,
-          newPost,
-          satelliteUrls,
-        });
-        onSubmit(newPost);
-        toast.update(toastId, {
-          render: "Tạo bài viết thành công!",
-          type: "success",
-          autoClose: 2500,
-        });
-        navigate("/progress", { state: { post: newPost } });
-        setUploading(true);
-        return newPost;
+      const url = `${import.meta.env.VITE_API_BASE_URL}/api/post`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ values, storeImg: storeImg.current }),
       });
+      const data = await response.json();
+      const { newPost } = data;
+      if (data.successfulSatelliteUrls.length === 0) {
+        toast.error("Không thể tạo bài viết trên bất kỳ trang vệ tinh nào.", {
+          autoClose: 5000,
+        });
+      }
+      addPost(newPost);
+      //onSubmit(newPost);
+      navigate("/progress", { state: { post: newPost } });
+      return newPost;
     } catch (error) {
       toast.dismiss(toastId);
       toast.error("Tạo bài viết thất bại!", { autoClose: 3000 });
@@ -218,7 +208,6 @@ const PostForm = ({
             return null;
           }
           data = await res.json();
-          console.log("Upload response data:", data);
           storeImg.current = storeImg.current.map((c) => {
             if (c.url.includes(site.url)) {
               return { ...c, img: [...c.img, data.source_url] };
@@ -230,7 +219,6 @@ const PostForm = ({
       } catch (error) {
         console.error("Upload error:", error);
         toast.error(`Upload ảnh lên ${site.url} thất bại!`);
-        toast.error(`số trang thất bại là ${++count}`);
         return null;
       }
     });
