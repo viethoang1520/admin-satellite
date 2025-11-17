@@ -3,6 +3,7 @@ const Satellite = require("../models/Satellite");
 const getQueue = require("../../config/queue/pqueue");
 const { postToSatellite } = require("../../apis/post");
 const { convertErrorSatelliteToUrls } = require("../../utils/satelliteUtils");
+const { createVariations } = require("../../utils/createVariations");
 
 const getAllPosts = async (req, res) => {
   try {
@@ -60,11 +61,7 @@ const createNewPost = async (req, res) => {
       newPost,
       storeImg
     );
-    // if (successfulSatelliteUrls.length === 0) {
-    //   return res
-    //     .status(500)
-    //     .json({ message: "Failed to push to satellite websites" });
-    // }
+
     const successfulRate = progress / totalSatellite;
     await Post.findByIdAndUpdate(
       newPost._id,
@@ -88,7 +85,7 @@ function replaceImageLinks(content, baseUrlOld, baseUrlNew) {
   return content.replace(regex, baseUrlNew);
 }
 
-const pushToSatelliteWebsite = async (newPost, storeImg, progress = 0) => {
+const pushToSatelliteWebsite = async (newPost, storeImg, progress = 0, isFirstSatellite = true) => {
   try {
     const satellites = await Satellite.find();
     if (!satellites.length) {
@@ -142,13 +139,21 @@ const pushToSatelliteWebsite = async (newPost, storeImg, progress = 0) => {
 
       queue.add(async () => {
         try {
-          const res = await postToSatellite(satellite, post);
+          let newContentVariation = "";
+          if (isFirstSatellite) { // không tạo variation cho lần đầu tiên gửi
+            newContentVariation = newContent;
+            isFirstSatellite = false;
+          } else { // từ lần thứ 2 trở đi mới tạo variation
+            newContentVariation = await createVariations(newContent);
+          }
+          post.content = newContentVariation;
+          const res = await postToSatellite(satellite, post)
           return res;
         } catch (error) {
           await Post.findByIdAndUpdate(
             newPost._id,
             {
-              $addToSet: {  
+              $addToSet: {
                 errorSatellite: {
                   satelliteId: satellite._id,
                   errorCode: error?.status || 500
@@ -170,9 +175,9 @@ const pushToSatelliteWebsite = async (newPost, storeImg, progress = 0) => {
   }
 };
 
-const repostToErrorSatellitesOnePost = async (req, res) => { 
+const repostToErrorSatellitesOnePost = async (req, res) => {
   try {
-    const {storeImg} = req.body
+    const { storeImg } = req.body
     const existingPost = await Post.findById(req.params.id)
       .populate('errorSatellite.satelliteId');
     const { successfulRate, totalSatellite } = existingPost;
@@ -188,7 +193,7 @@ const repostToErrorSatellitesOnePost = async (req, res) => {
     });
     existingPost.errorSatellite = errorSatellites;
     const updatedPosts = await existingPost.save();
-  
+
     const newSuccessfulRate = progress / totalSatellite;
     await Post.findByIdAndUpdate(
       existingPost._id,
