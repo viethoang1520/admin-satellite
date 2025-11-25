@@ -6,8 +6,8 @@ const ErrorSatellite = new mongoose.Schema({
 })
 
 const Post = new mongoose.Schema({
-  title: { type: String, required: true },
-  content: { type: String, required: true },
+  title: { type: String, required: false },
+  content: { type: String, required: false },
   totalSatellite: {
     type: Number,
     required: false
@@ -24,6 +24,10 @@ const Post = new mongoose.Schema({
     type: Number,
     required: false,
   },
+  imagePath: {
+    type: [String],
+    required: false,
+  }
 }, {
   timestamps: true
 })

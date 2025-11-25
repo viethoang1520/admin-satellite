@@ -4,7 +4,7 @@ const getQueue = require("../../config/queue/pqueue");
 const { postToSatellite } = require("../../apis/post");
 const { convertErrorSatelliteToUrls } = require("../../utils/satelliteUtils");
 const { createVariations } = require("../../utils/createVariations");
-
+const { saveImageToServer } = require("./imageController");
 const getAllPosts = async (req, res) => {
   try {
     const allPosts = await Post.find();
@@ -41,26 +41,36 @@ const trackProgress = async (req, res) => {
 };
 const createNewPost = async (req, res) => {
   try {
-    const { values, storeImg } = req.body;
-    const { title, content } = values;
+    const values = req.body.values;
+    const siteInfoWithImageUrl = JSON.parse(req.body.siteInfoWithImageUrl);
+    const { title, content } = JSON.parse(values);
+    
     const totalSatellite = await Satellite.countDocuments();
     if (!title || !content) {
       return res
         .status(400)
-        .json({ message: "Title and content are required" });
+        .json({ message: "Chưa nhập tiêu đề hoặc nội dung" });
     }
 
-    const newPost = new Post({
-      title,
-      content,
-      totalSatellite,
-    });
+    const newPostId = await saveImageToServer(req, res);
+
+    const newPost = await Post.findByIdAndUpdate(
+      newPostId,
+      {
+        title,
+        content,
+        totalSatellite,
+      },
+      { new: true }
+    )
+    
     await newPost.save();
 
     const { successfulSatelliteUrls, progress } = await pushToSatelliteWebsite(
       newPost,
-      storeImg
+      siteInfoWithImageUrl
     );
+
 
     const successfulRate = progress / totalSatellite;
     await Post.findByIdAndUpdate(
@@ -85,7 +95,7 @@ function replaceImageLinks(content, baseUrlOld, baseUrlNew) {
   return content.replace(regex, baseUrlNew);
 }
 
-const pushToSatelliteWebsite = async (newPost, storeImg, progress = 0, isFirstSatellite = true) => {
+const pushToSatelliteWebsite = async (newPost, siteInfoWithImageUrl, progress = 0, isFirstSatellite = true) => {
   try {
     const satellites = await Satellite.find();
     if (!satellites.length) {
@@ -114,7 +124,7 @@ const pushToSatelliteWebsite = async (newPost, storeImg, progress = 0, isFirstSa
     });
 
     for (const satellite of satellites) {
-      const siteMatch = Object.values(storeImg).find((site) =>
+      const siteMatch = Object.values(siteInfoWithImageUrl).find((site) =>
         satellite.url.includes(new URL(site.url))
       );
 
@@ -177,14 +187,14 @@ const pushToSatelliteWebsite = async (newPost, storeImg, progress = 0, isFirstSa
 
 const repostToErrorSatellitesOnePost = async (req, res) => {
   try {
-    const { storeImg } = req.body
+    const { siteInfoWithImageUrl } = req.body
     const existingPost = await Post.findById(req.params.id)
       .populate('errorSatellite.satelliteId');
     const { successfulRate, totalSatellite } = existingPost;
     const existingProgress = Math.round(successfulRate * totalSatellite);
     const { successfulSatelliteUrls, progress } = await pushToSatelliteWebsite(
       existingPost,
-      storeImg,
+      siteInfoWithImageUrl,
       existingProgress
     );
 
