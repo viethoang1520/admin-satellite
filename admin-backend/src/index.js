@@ -13,11 +13,12 @@ const app = express();
 mongoDB.connect()
 
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "public")));
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.json());
-
 app.use(cors({
   origin: process.env.CLIENT_URL,
   methods: "GET, POST, PUT, DELETE, PATCH, OPTIONS",
@@ -40,6 +41,9 @@ app.use(session({
   saveUninitialized: true
 }));
 
+app.get('/test-upload', (req, res) => {
+  res.sendFile(path.join(__dirname, 'uploads', 'posts', 'images-1764080546712.jpg'));
+});
 
 app.get('/', (req, res) => {
   console.log('Hit / ')
