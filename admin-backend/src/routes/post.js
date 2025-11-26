@@ -5,11 +5,13 @@ const {
   createNewPost,
   trackProgress,
   repostToErrorSatellitesOnePost,
-  getPostById
+  getPostById,
+  getErrorPost
 } = require('../app/controllers/postController')
 const upload = require('../config/file/upload')
 
 router.get('/', getAllPosts)
+router.get('/error/:id', getErrorPost)
 router.get('/:id', getPostById)
 router.post('/', upload.array("images", 10), createNewPost)
 router.post('/repost', repostToErrorSatellitesOnePost)
