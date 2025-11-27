@@ -46,23 +46,23 @@ const createNewPost = async (req, res) => {
     const siteInfoWithImageUrl = JSON.parse(req.body.siteInfoWithImageUrl);
     let { title, content } = JSON.parse(values);
 
-    content = `<h2 id="ftoc-heading-1" class="ftwp-heading" data-pm-slice="1 1 []">DIAMOND SKY &ndash; BIỂU TƯỢNG SỐNG CAO CẤP KHU Đ&Ocirc;NG</h2>
-    <p data-pm-slice="1 3 []"><a href="https://diamondskys.com.vn/"><strong>Diamond Sky</strong></a>&nbsp;l&agrave; dự &aacute;n căn hộ cao cấp được quy hoạch v&agrave; ph&aacute;t triển tại trung t&acirc;m phường Hiệp B&igrave;nh, TP.Thủ Đức. Sở hữu thiết kế hiện đại, hệ thống tiện &iacute;ch đẳng cấp v&agrave; vị tr&iacute; v&agrave;ng kế cận quận trung t&acirc;m, Diamond Sky hứa hẹn trở th&agrave;nh t&acirc;m điểm sống đẳng cấp của giới thượng lưu khu Đ&ocirc;ng TP.HCM.</p>
-    <ul data-spread="false">
-    <li><strong>T&ecirc;n dự &aacute;n</strong>: Diamond Sky</li>
-    <li><strong>Vị tr&iacute;</strong>: Đường Nguyễn Thị Nhung, Phường Hiệp B&igrave;nh, TP.Thủ Đức, TP.HCM</li>
-    <li><strong>Chủ đầu tư</strong>: Đang cập nhật</li>
-    <li><strong>Tổng diện t&iacute;ch</strong>: ~10.000 m&sup2;</li>
-    <li><strong>Mật độ x&acirc;y dựng</strong>: ~35%</li>
-    <li><strong>Loại h&igrave;nh sản phẩm</strong>: Căn hộ cao cấp, shophouse, officetel</li>
-    <li><strong>Số block</strong>: 2 block cao 25 tầng</li>
-    <li><strong>Tổng số căn hộ</strong>: Tr&ecirc;n 5000 căn</li>
-    <li><strong>Ph&aacute;p l&yacute;</strong>: Sở hồng l&acirc;u d&agrave;i</li>
-    <li><strong>Thời gian b&agrave;n giao</strong>: Dự kiến Qu&yacute; IV/2028</li>
-    </ul>
-    <p><img src="https://canho-bconssolary.com/wp-content/uploads/2025/11/0450c9c27e39c96790284.jpg" alt="0450c9c27e39c96790284.jpg" width="1280" height="960"></p>
-    <p><img src="https://canho-bconssolary.com/wp-content/uploads/2025/11/0450c9c27e39c96790284.jpg" alt="0450c9c27e39c96790284.jpg" width="1280" height="960"></p>
-    `
+    // content = `<h2 id="ftoc-heading-1" class="ftwp-heading" data-pm-slice="1 1 []">DIAMOND SKY &ndash; BIỂU TƯỢNG SỐNG CAO CẤP KHU Đ&Ocirc;NG</h2>
+    // <p data-pm-slice="1 3 []"><a href="https://diamondskys.com.vn/"><strong>Diamond Sky</strong></a>&nbsp;l&agrave; dự &aacute;n căn hộ cao cấp được quy hoạch v&agrave; ph&aacute;t triển tại trung t&acirc;m phường Hiệp B&igrave;nh, TP.Thủ Đức. Sở hữu thiết kế hiện đại, hệ thống tiện &iacute;ch đẳng cấp v&agrave; vị tr&iacute; v&agrave;ng kế cận quận trung t&acirc;m, Diamond Sky hứa hẹn trở th&agrave;nh t&acirc;m điểm sống đẳng cấp của giới thượng lưu khu Đ&ocirc;ng TP.HCM.</p>
+    // <ul data-spread="false">
+    // <li><strong>T&ecirc;n dự &aacute;n</strong>: Diamond Sky</li>
+    // <li><strong>Vị tr&iacute;</strong>: Đường Nguyễn Thị Nhung, Phường Hiệp B&igrave;nh, TP.Thủ Đức, TP.HCM</li>
+    // <li><strong>Chủ đầu tư</strong>: Đang cập nhật</li>
+    // <li><strong>Tổng diện t&iacute;ch</strong>: ~10.000 m&sup2;</li>
+    // <li><strong>Mật độ x&acirc;y dựng</strong>: ~35%</li>
+    // <li><strong>Loại h&igrave;nh sản phẩm</strong>: Căn hộ cao cấp, shophouse, officetel</li>
+    // <li><strong>Số block</strong>: 2 block cao 25 tầng</li>
+    // <li><strong>Tổng số căn hộ</strong>: Tr&ecirc;n 5000 căn</li>
+    // <li><strong>Ph&aacute;p l&yacute;</strong>: Sở hồng l&acirc;u d&agrave;i</li>
+    // <li><strong>Thời gian b&agrave;n giao</strong>: Dự kiến Qu&yacute; IV/2028</li>
+    // </ul>
+    // <p><img src="https://canho-bconssolary.com/wp-content/uploads/2025/11/0450c9c27e39c96790284.jpg" alt="0450c9c27e39c96790284.jpg" width="1280" height="960"></p>
+    // <p><img src="https://canho-bconssolary.com/wp-content/uploads/2025/11/0450c9c27e39c96790284.jpg" alt="0450c9c27e39c96790284.jpg" width="1280" height="960"></p>
+    // `
     const totalSatellite = await Satellite.countDocuments();
     if (!title || !content) {
       return res
