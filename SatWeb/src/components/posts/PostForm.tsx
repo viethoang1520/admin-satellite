@@ -45,7 +45,14 @@ interface PostFormProps {
   onSubmit: (values: FormValues) => void;
   isEditing?: boolean;
 }
-
+interface SatelliteAccount {
+  _id: string;
+  username: string;
+  password: string;
+  url: string;
+  status: string;
+  img: string[];
+}
 const PostForm = ({
   initialValues,
   onSubmit,
@@ -59,14 +66,7 @@ const PostForm = ({
   const { measureAsync, clearMetrics, metrics } = usePerformanceMonitor();
   const { getSatellite, satellites } = useSatelliteStore();
   const [images, setImages] = useState<File[]>([]);
-  interface SatelliteAccount {
-    _id: string;
-    username: string;
-    password: string;
-    url: string;
-    status: string;
-    img: string[];
-  }
+  const [selectedSites, setSelectedSites] = useState<string[]>([]);
 
   const storeImgTemp = satellites.map((site) => {
     return {
@@ -78,8 +78,23 @@ const PostForm = ({
       img: [] as string[],
     };
   });
-
+  console.log("storeImgTemp", storeImgTemp);
   const siteInfoWithImageUrl = useRef<SatelliteAccount[]>([...storeImgTemp]);
+
+  useEffect(() => {
+    const filtered = satellites
+      .filter((site) => selectedSites.includes(site._id))
+      .map((site) => ({
+        _id: site._id || "",
+        username: site.username,
+        password: site.password,
+        url: site.url,
+        status: site.status || "pending",
+        img: [] as string[],
+      }));
+
+    siteInfoWithImageUrl.current = filtered;
+  }, [selectedSites, satellites]);
 
   useEffect(() => {
     getSatellite();
@@ -395,6 +410,35 @@ const PostForm = ({
                 </FormItem>
               )}
             />
+            <div className="space-y-2">
+              <h1 className=" text-blue-600 text-xl font-bold mt-4 mb-4">
+                Chọn các site để đăng bài
+              </h1>
+              {satellites.map((site) => {
+                const checked = selectedSites.includes(site._id);
+
+                return (
+                  <label
+                    key={site._id}
+                    className="flex items-center gap-2 p-2 border rounded cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => {
+                        setSelectedSites((prev) =>
+                          checked
+                            ? prev.filter((id) => id !== site._id)
+                            : [...prev, site._id]
+                        );
+                      }}
+                    />
+
+                    <span className="text-sm">{site.url}</span>
+                  </label>
+                );
+              })}
+            </div>
 
             <div className="flex justify-between items-center space-x-2 pt-4 border-t">
               <Button
