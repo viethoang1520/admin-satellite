@@ -42,10 +42,11 @@ const trackProgress = async (req, res) => {
 };
 const createNewPost = async (req, res) => {
   try {
+    console.log("req.body: ", req.body);
     const values = req.body.values;
     const siteInfoWithImageUrl = JSON.parse(req.body.siteInfoWithImageUrl);
     let { title, content } = JSON.parse(values);
-
+    console.log("siteInfoWithImaxgeUrl: ", siteInfoWithImageUrl);
     // content = `<h2 id="ftoc-heading-1" class="ftwp-heading" data-pm-slice="1 1 []">DIAMOND SKY &ndash; BIỂU TƯỢNG SỐNG CAO CẤP KHU Đ&Ocirc;NG</h2>
     // <p data-pm-slice="1 3 []"><a href="https://diamondskys.com.vn/"><strong>Diamond Sky</strong></a>&nbsp;l&agrave; dự &aacute;n căn hộ cao cấp được quy hoạch v&agrave; ph&aacute;t triển tại trung t&acirc;m phường Hiệp B&igrave;nh, TP.Thủ Đức. Sở hữu thiết kế hiện đại, hệ thống tiện &iacute;ch đẳng cấp v&agrave; vị tr&iacute; v&agrave;ng kế cận quận trung t&acirc;m, Diamond Sky hứa hẹn trở th&agrave;nh t&acirc;m điểm sống đẳng cấp của giới thượng lưu khu Đ&ocirc;ng TP.HCM.</p>
     // <ul data-spread="false">
@@ -64,7 +65,7 @@ const createNewPost = async (req, res) => {
     // <p><img src="https://canho-bconssolary.com/wp-content/uploads/2025/11/0450c9c27e39c96790284.jpg" alt="0450c9c27e39c96790284.jpg" width="1280" height="960"></p>
     // `
     // Chỉ đếm satellite có status ACTIVE
-    const totalSatellite = await Satellite.countDocuments({ status: 'ACTIVE' });
+    const totalSatellite = await Satellite.countDocuments({ status: "ACTIVE" });
 
     if (!title || !content) {
       return res
@@ -82,7 +83,7 @@ const createNewPost = async (req, res) => {
         totalSatellite,
         postedSatellite: [],
         errorSatellite: [],
-        successfulRate: 0
+        successfulRate: 0,
       },
       { new: true }
     );
@@ -101,18 +102,24 @@ const createNewPost = async (req, res) => {
     );
     const post = await Post.findById(newPost._id);
     const updatedPost = await convertErrorSatelliteToUrls(post);
-    return res.status(201).json({ newPost: updatedPost, successfulSatelliteUrls });
+    return res
+      .status(201)
+      .json({ newPost: updatedPost, successfulSatelliteUrls });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 };
 
-
-
-const pushToSatelliteWebsite = async (newPost, siteInfoWithImageUrl, progress = 0, isFirstSatellite = true, isRepost = false) => {
+const pushToSatelliteWebsite = async (
+  newPost,
+  siteInfoWithImageUrl,
+  progress = 0,
+  isFirstSatellite = true,
+  isRepost = false
+) => {
   try {
     // Chỉ lấy những satellite có status ACTIVE
-    const satellites = await Satellite.find({ status: 'ACTIVE' });
+    const satellites = await Satellite.find({ status: "ACTIVE" });
     if (!satellites.length) {
       console.warn("⚠️ No ACTIVE satellite sites found in DB.");
       return { successfulSatelliteUrls: [], progress };
@@ -147,7 +154,11 @@ const pushToSatelliteWebsite = async (newPost, siteInfoWithImageUrl, progress = 
         console.log(`⚠️ Không tìm thấy site tương ứng cho ${satellite.url}`);
         await Post.findByIdAndUpdate(
           newPost._id,
-          { $addToSet: { errorSatellite: { satelliteId: satellite._id, errorCode: 404 } } },
+          {
+            $addToSet: {
+              errorSatellite: { satelliteId: satellite._id, errorCode: 404 },
+            },
+          },
           { new: true }
         );
         continue;
@@ -158,7 +169,9 @@ const pushToSatelliteWebsite = async (newPost, siteInfoWithImageUrl, progress = 
       if (!isRepost) {
         newContent = replaceImagesInContent(newContent, siteMatch.img);
       } else {
-        const images = newPost.imagePath.map(img => `${process.env.SERVER_URL}/${img}`);
+        const images = newPost.imagePath.map(
+          (img) => `${process.env.SERVER_URL}/${img}`
+        );
         newContent = replaceImagesInContent(newContent, images);
       }
 
@@ -171,14 +184,16 @@ const pushToSatelliteWebsite = async (newPost, siteInfoWithImageUrl, progress = 
       queue.add(async () => {
         try {
           let newContentVariation = "";
-          if (isFirstSatellite) { // không tạo variation cho lần đầu tiên gửi
+          if (isFirstSatellite) {
+            // không tạo variation cho lần đầu tiên gửi
             newContentVariation = newContent;
             isFirstSatellite = false;
-          } else { // từ lần thứ 2 trở đi mới tạo variation
+          } else {
+            // từ lần thứ 2 trở đi mới tạo variation
             newContentVariation = await createVariations(newContent);
           }
           post.content = newContentVariation;
-          const res = await postToSatellite(satellite, post)
+          const res = await postToSatellite(satellite, post);
           return res;
         } catch (error) {
           await Post.findByIdAndUpdate(
@@ -187,9 +202,9 @@ const pushToSatelliteWebsite = async (newPost, siteInfoWithImageUrl, progress = 
               $addToSet: {
                 errorSatellite: {
                   satelliteId: satellite._id,
-                  errorCode: error?.status || 500
-                }
-              }
+                  errorCode: error?.status || 500,
+                },
+              },
             },
             { new: true }
           );
@@ -209,24 +224,32 @@ const pushToSatelliteWebsite = async (newPost, siteInfoWithImageUrl, progress = 
 const repostToErrorSatellitesOnePost = async (req, res) => {
   try {
     let formattedObj = [];
-    const existingPost = await Post.findById(req.params.id)
-      .populate('errorSatellite.satelliteId');
-    const errorSitesInfo = existingPost.errorSatellite
-    let siteInfoWithImageUrl = errorSitesInfo.map(site => {
+    const existingPost = await Post.findById(req.params.id).populate(
+      "errorSatellite.satelliteId"
+    );
+    const errorSitesInfo = existingPost.errorSatellite;
+    let siteInfoWithImageUrl = errorSitesInfo.map((site) => {
       formattedObj.push({
         url: site.satelliteId.url,
         username: site.satelliteId.username,
         password: site.satelliteId.password,
-        img: existingPost.imagePath.map(img => `${process.env.SERVER_URL}/${img}`)
-      })
+        img: existingPost.imagePath.map(
+          (img) => `${process.env.SERVER_URL}/${img}`
+        ),
+      });
 
       return formattedObj[formattedObj.length - 1];
     });
     const { successfulRate } = existingPost;
     // Lấy totalSatellite ACTIVE hiện tại, có thể khác với lúc tạo post
-    const currentTotalActiveSatellite = await Satellite.countDocuments({ status: 'ACTIVE' });
+    const currentTotalActiveSatellite = await Satellite.countDocuments({
+      status: "ACTIVE",
+    });
 
-    const existingProgress = currentTotalActiveSatellite > 0 ? Math.round(successfulRate * currentTotalActiveSatellite) : 0;
+    const existingProgress =
+      currentTotalActiveSatellite > 0
+        ? Math.round(successfulRate * currentTotalActiveSatellite)
+        : 0;
     const { successfulSatelliteUrls, progress } = await pushToSatelliteWebsite(
       existingPost,
       siteInfoWithImageUrl,
@@ -235,46 +258,52 @@ const repostToErrorSatellitesOnePost = async (req, res) => {
       true
     );
 
-    console.log("successfulSatelliteUrls: ", successfulSatelliteUrls)
+    console.log("successfulSatelliteUrls: ", successfulSatelliteUrls);
 
     // Lọc ra những site error mà không có trong danh sách thành công
-    const remainingErrorSatellites = existingPost.errorSatellite.filter(err => {
-      // Kiểm tra xem URL của satellite có trong danh sách thành công không
-      const isSuccessful = successfulSatelliteUrls.some(successUrl =>
-        err.satelliteId.url.includes(new URL(successUrl).hostname)
-      );
-      return !isSuccessful;
-    });
+    const remainingErrorSatellites = existingPost.errorSatellite.filter(
+      (err) => {
+        // Kiểm tra xem URL của satellite có trong danh sách thành công không
+        const isSuccessful = successfulSatelliteUrls.some((successUrl) =>
+          err.satelliteId.url.includes(new URL(successUrl).hostname)
+        );
+        return !isSuccessful;
+      }
+    );
 
-    console.log("remainingErrorSatellites: ", remainingErrorSatellites)
+    console.log("remainingErrorSatellites: ", remainingErrorSatellites);
 
     // Cập nhật mảng errorSatellite với những site còn lại
-    const newSuccessfulRate = currentTotalActiveSatellite > 0 ? progress / currentTotalActiveSatellite : 0;
+    const newSuccessfulRate =
+      currentTotalActiveSatellite > 0
+        ? progress / currentTotalActiveSatellite
+        : 0;
 
     await Post.findByIdAndUpdate(
       existingPost._id,
       {
         errorSatellite: remainingErrorSatellites,
         successfulRate: newSuccessfulRate,
-        totalSatellite: currentTotalActiveSatellite // Cập nhật lại totalSatellite với số active hiện tại
+        totalSatellite: currentTotalActiveSatellite, // Cập nhật lại totalSatellite với số active hiện tại
       },
       { new: true }
     );
 
-    const updatedPost = await Post.findById(existingPost._id)
-      .populate('errorSatellite.satelliteId');
+    const updatedPost = await Post.findById(existingPost._id).populate(
+      "errorSatellite.satelliteId"
+    );
 
     return res.status(200).json({
       message: "Posts updated successfully",
       updatedPost,
       successfulSatelliteUrls,
-      remainingErrors: remainingErrorSatellites.length
+      remainingErrors: remainingErrorSatellites.length,
     });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return res.status(500).json({ error: error.message });
   }
-}
+};
 
 const getErrorPost = async (req, res) => {
   try {
@@ -284,15 +313,17 @@ const getErrorPost = async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy bài viết" });
     }
     const postContent = post.content;
-    const images = post.imagePath.map(img => `${process.env.SERVER_URL}/${img}`);
-    console.log(images)
+    const images = post.imagePath.map(
+      (img) => `${process.env.SERVER_URL}/${img}`
+    );
+    console.log(images);
     const contentWithImages = replaceImagesInContent(postContent, images);
 
     res.status(200).json({ contentWithImages });
   } catch (error) {
     res.status(500).json({ error });
   }
-}
+};
 
 const getPostById = async (req, res) => {
   try {
@@ -308,7 +339,6 @@ const getPostById = async (req, res) => {
   }
 };
 
-
 module.exports = {
   getAllPosts,
   getPostById,
@@ -316,5 +346,5 @@ module.exports = {
   trackProgress,
   createNewPost,
   pushToSatelliteWebsite,
-  repostToErrorSatellitesOnePost
+  repostToErrorSatellitesOnePost,
 };

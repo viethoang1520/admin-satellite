@@ -80,7 +80,6 @@ const PostForm = ({
   });
   console.log("storeImgTemp", storeImgTemp);
   const siteInfoWithImageUrl = useRef<SatelliteAccount[]>([...storeImgTemp]);
-
   useEffect(() => {
     const filtered = satellites
       .filter((site) => selectedSites.includes(site._id))
@@ -221,7 +220,7 @@ const PostForm = ({
   // Upload ảnh lên nhiều WordPress site
   const uploadImageToMultipleWordPress = async (file: File) => {
     setImages((prev) => [...prev, file]);
-    const uploadPromises = satellites.map(async (site) => {
+    const uploadPromises = siteInfoWithImageUrl.current.map(async (site) => {
       console.log("Uploading to:", site.url);
       let count = 0;
       const url = `${site.url}wp-json/wp/v2/media`;
@@ -411,7 +410,7 @@ const PostForm = ({
               )}
             />
             <div className="space-y-2">
-              <h1 className=" text-blue-600 text-xl font-bold mt-4 mb-4">
+              <h1 className=" text-blue-600 text-xl font-bold m-4">
                 Chọn các site để đăng bài
               </h1>
               {satellites.map((site) => {

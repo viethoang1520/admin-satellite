@@ -53,6 +53,7 @@ const PostTable = ({
   };
 
   const truncateContent = (content: string, maxLength = 100) => {
+    if (!content) return "";
     const textOnly = stripHtmlTags(content);
     return textOnly.length > maxLength
       ? `${textOnly.substring(0, maxLength)}...`
