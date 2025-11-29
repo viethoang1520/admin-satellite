@@ -148,14 +148,30 @@ const pushToSatelliteWebsite = async (
       const siteMatch = Object.values(siteInfoWithImageUrl).find((site) =>
         satellite.url.includes(new URL(site.url))
       );
-      const siteWithoutImage = satellite.img.length === 0;
-      if (!siteMatch || siteWithoutImage) {
+
+      if (!siteMatch) {
         console.log(`⚠️ Không tìm thấy site tương ứng cho ${satellite.url}`);
         await Post.findByIdAndUpdate(
           newPost._id,
           {
             $addToSet: {
               errorSatellite: { satelliteId: satellite._id, errorCode: 404 },
+            },
+          },
+          { new: true }
+        );
+        continue;
+      }
+
+      // Kiểm tra xem site có ảnh hay không
+      const siteWithoutImage = !siteMatch.img || siteMatch.img.length === 0;
+      if (siteWithoutImage) {
+        console.log(`⚠️ Site ${satellite.url} không có ảnh để post`);
+        await Post.findByIdAndUpdate(
+          newPost._id,
+          {
+            $addToSet: {
+              errorSatellite: { satelliteId: satellite._id, errorCode: 400 },
             },
           },
           { new: true }
