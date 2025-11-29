@@ -16,6 +16,7 @@ interface PostStore {
   getErrorPosts: () => Promise<Post[] | void>;
   getProgress: (postTitle: string) => Promise<number | void>;
   getPostById: (postId: string) => Promise<Post | void>;
+  rePost: (_id: string) => Promise<Post | void>;
 }
 
 const postStore = create<PostStore>()(
@@ -112,6 +113,23 @@ const postStore = create<PostStore>()(
         } catch (error: any) {
           console.error(
             "Get error posts error:",
+            error?.response?.data || error.message || error
+          );
+        }
+      },
+
+      rePost: async (_id: string) => {
+        try {
+          const res = await axios.post(`/api/post/repost/${_id}`, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+          });
+          if (res.status === 200) {
+            return res.data;
+          }
+        } catch (error: any) {
+          console.error(
+            "Repost error:",
             error?.response?.data || error.message || error
           );
         }

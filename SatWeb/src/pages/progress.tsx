@@ -32,6 +32,7 @@ const ProgressPage = () => {
   const addPost = postStore((state) => state.addPost);
   const getPost = postStore((state) => state.getPost);
   const getPostById = postStore((state) => state.getPostById);
+  const rePost = postStore((state) => state.rePost);
   const { satelliteUrls } = useProgressStore();
   const { satellites } = useSatelliteStore();
   const location = useLocation();
@@ -132,6 +133,16 @@ const ProgressPage = () => {
     return icons[status];
   };
 
+  const handleRepost = async (id) => {
+    toast.info("Đang gửi lại bài viết...");
+    const result = await rePost(id);
+    if (result) {
+      toast.success("Đã gửi lại bài viết thành công!");
+      await getPost();
+    } else {
+      toast.error("Gửi lại bài viết thất bại.");
+    }
+  };
   const SitesList = ({ sites }: { sites: Site[] }) => (
     <div className="space-y-4">
       {sites.length === 0 ? (
@@ -168,7 +179,7 @@ const ProgressPage = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => toast.warn("Tính năng đăng lại đang phát triển")}
+                onClick={() => handleRepost(site.id)}
               >
                 Đăng lại
               </Button>

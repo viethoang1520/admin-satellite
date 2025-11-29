@@ -58,6 +58,7 @@ const PostForm = ({
   const { setProgress } = useProgressStore();
   const { measureAsync, clearMetrics, metrics } = usePerformanceMonitor();
   const { getSatellite, satellites } = useSatelliteStore();
+  const [images, setImages] = useState<File[]>([]);
   interface SatelliteAccount {
     _id: string;
     username: string;
@@ -78,11 +79,15 @@ const PostForm = ({
     };
   });
 
-  const storeImg = useRef<SatelliteAccount[]>([...storeImgTemp]);
+  const siteInfoWithImageUrl = useRef<SatelliteAccount[]>([...storeImgTemp]);
 
   useEffect(() => {
     getSatellite();
   }, []);
+
+  useEffect(() => {
+    console.log("image", images);
+  }, [images]);
 
   // useEffect(() => {
   //   async function runCheck() {
@@ -94,7 +99,7 @@ const PostForm = ({
   // }, [satellites]);
 
   useEffect(() => {
-    storeImg.current = [...storeImgTemp];
+    siteInfoWithImageUrl.current = [...storeImgTemp];
   }, [satellites]);
 
   const defaultValues: FormValues = initialValues || {
@@ -157,11 +162,28 @@ const PostForm = ({
 
     try {
       const url = `${import.meta.env.VITE_API_BASE_URL}/api/post`;
+      const formData = new FormData();
+
+      formData.append("values", JSON.stringify(values));
+      formData.append(
+        "siteInfoWithImageUrl",
+        JSON.stringify(siteInfoWithImageUrl.current)
+      );
+
+      images.forEach((file) => formData.append("images", file));
+
       const response = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ values, storeImg: storeImg.current }),
+        body: formData,
       });
+      // const response = await fetch(url, {
+      //   method: "POST",
+      //   body: {
+      //     values,
+      //     siteInfoWithImageUrl: siteInfoWithImageUrl.current,
+      //     images: images,
+      //   },
+      // });
       const data = await response.json();
       const { newPost } = data;
       if (data.successfulSatelliteUrls.length === 0) {
@@ -183,6 +205,7 @@ const PostForm = ({
 
   // Upload ảnh lên nhiều WordPress site
   const uploadImageToMultipleWordPress = async (file: File) => {
+    setImages((prev) => [...prev, file]);
     const uploadPromises = satellites.map(async (site) => {
       console.log("Uploading to:", site.url);
       let count = 0;
@@ -208,12 +231,14 @@ const PostForm = ({
             return null;
           }
           data = await res.json();
-          storeImg.current = storeImg.current.map((c) => {
-            if (c.url.includes(site.url)) {
-              return { ...c, img: [...c.img, data.source_url] };
+          siteInfoWithImageUrl.current = siteInfoWithImageUrl.current.map(
+            (c) => {
+              if (c.url.includes(site.url)) {
+                return { ...c, img: [...c.img, data.source_url] };
+              }
+              return c;
             }
-            return c;
-          });
+          );
         }
         return { link: data?.source_url };
       } catch (error) {
@@ -330,6 +355,12 @@ const PostForm = ({
                         file_picker_callback: file_picker_callback,
                         images_upload_handler: async (blobInfo) => {
                           const file = blobInfo.blob();
+                          // const blob = blobInfo.blob();
+                          // const filev2 = new File([blob], blobInfo.filename(), {
+                          //   type: blob.type,
+                          // });
+
+                          // setImages((prev) => [...prev, filev2]);
                           const urls = await uploadImageToMultipleWordPress(
                             file
                           );
