@@ -46,24 +46,26 @@ const createNewPost = async (req, res) => {
     const siteInfoWithImageUrl = JSON.parse(req.body.siteInfoWithImageUrl);
     let { title, content } = JSON.parse(values);
 
-    // content = `<h2 id="ftoc-heading-1" class="ftwp-heading" data-pm-slice="1 1 []">DIAMOND SKY &ndash; BIỂU TƯỢNG SỐNG CAO CẤP KHU Đ&Ocirc;NG</h2>
-    // <p data-pm-slice="1 3 []"><a href="https://diamondskys.com.vn/"><strong>Diamond Sky</strong></a>&nbsp;l&agrave; dự &aacute;n căn hộ cao cấp được quy hoạch v&agrave; ph&aacute;t triển tại trung t&acirc;m phường Hiệp B&igrave;nh, TP.Thủ Đức. Sở hữu thiết kế hiện đại, hệ thống tiện &iacute;ch đẳng cấp v&agrave; vị tr&iacute; v&agrave;ng kế cận quận trung t&acirc;m, Diamond Sky hứa hẹn trở th&agrave;nh t&acirc;m điểm sống đẳng cấp của giới thượng lưu khu Đ&ocirc;ng TP.HCM.</p>
-    // <ul data-spread="false">
-    // <li><strong>T&ecirc;n dự &aacute;n</strong>: Diamond Sky</li>
-    // <li><strong>Vị tr&iacute;</strong>: Đường Nguyễn Thị Nhung, Phường Hiệp B&igrave;nh, TP.Thủ Đức, TP.HCM</li>
-    // <li><strong>Chủ đầu tư</strong>: Đang cập nhật</li>
-    // <li><strong>Tổng diện t&iacute;ch</strong>: ~10.000 m&sup2;</li>
-    // <li><strong>Mật độ x&acirc;y dựng</strong>: ~35%</li>
-    // <li><strong>Loại h&igrave;nh sản phẩm</strong>: Căn hộ cao cấp, shophouse, officetel</li>
-    // <li><strong>Số block</strong>: 2 block cao 25 tầng</li>
-    // <li><strong>Tổng số căn hộ</strong>: Tr&ecirc;n 5000 căn</li>
-    // <li><strong>Ph&aacute;p l&yacute;</strong>: Sở hồng l&acirc;u d&agrave;i</li>
-    // <li><strong>Thời gian b&agrave;n giao</strong>: Dự kiến Qu&yacute; IV/2028</li>
-    // </ul>
-    // <p><img src="https://canho-bconssolary.com/wp-content/uploads/2025/11/0450c9c27e39c96790284.jpg" alt="0450c9c27e39c96790284.jpg" width="1280" height="960"></p>
-    // <p><img src="https://canho-bconssolary.com/wp-content/uploads/2025/11/0450c9c27e39c96790284.jpg" alt="0450c9c27e39c96790284.jpg" width="1280" height="960"></p>
-    // `
-    const totalSatellite = await Satellite.countDocuments();
+    content = `<h2 id="ftoc-heading-1" class="ftwp-heading" data-pm-slice="1 1 []">DIAMOND SKY &ndash; BIỂU TƯỢNG SỐNG CAO CẤP KHU Đ&Ocirc;NG</h2>
+    <p data-pm-slice="1 3 []"><a href="https://diamondskys.com.vn/"><strong>Diamond Sky</strong></a>&nbsp;l&agrave; dự &aacute;n căn hộ cao cấp được quy hoạch v&agrave; ph&aacute;t triển tại trung t&acirc;m phường Hiệp B&igrave;nh, TP.Thủ Đức. Sở hữu thiết kế hiện đại, hệ thống tiện &iacute;ch đẳng cấp v&agrave; vị tr&iacute; v&agrave;ng kế cận quận trung t&acirc;m, Diamond Sky hứa hẹn trở th&agrave;nh t&acirc;m điểm sống đẳng cấp của giới thượng lưu khu Đ&ocirc;ng TP.HCM.</p>
+    <ul data-spread="false">
+    <li><strong>T&ecirc;n dự &aacute;n</strong>: Diamond Sky</li>
+    <li><strong>Vị tr&iacute;</strong>: Đường Nguyễn Thị Nhung, Phường Hiệp B&igrave;nh, TP.Thủ Đức, TP.HCM</li>
+    <li><strong>Chủ đầu tư</strong>: Đang cập nhật</li>
+    <li><strong>Tổng diện t&iacute;ch</strong>: ~10.000 m&sup2;</li>
+    <li><strong>Mật độ x&acirc;y dựng</strong>: ~35%</li>
+    <li><strong>Loại h&igrave;nh sản phẩm</strong>: Căn hộ cao cấp, shophouse, officetel</li>
+    <li><strong>Số block</strong>: 2 block cao 25 tầng</li>
+    <li><strong>Tổng số căn hộ</strong>: Tr&ecirc;n 5000 căn</li>
+    <li><strong>Ph&aacute;p l&yacute;</strong>: Sở hồng l&acirc;u d&agrave;i</li>
+    <li><strong>Thời gian b&agrave;n giao</strong>: Dự kiến Qu&yacute; IV/2028</li>
+    </ul>
+    <p><img src="https://canho-bconssolary.com/wp-content/uploads/2025/11/0450c9c27e39c96790284.jpg" alt="0450c9c27e39c96790284.jpg" width="1280" height="960"></p>
+    <p><img src="https://canho-bconssolary.com/wp-content/uploads/2025/11/0450c9c27e39c96790284.jpg" alt="0450c9c27e39c96790284.jpg" width="1280" height="960"></p>
+    `
+    // Chỉ đếm satellite có status ACTIVE
+    const totalSatellite = await Satellite.countDocuments({ status: 'ACTIVE' });
+
     if (!title || !content) {
       return res
         .status(400)
@@ -78,9 +80,9 @@ const createNewPost = async (req, res) => {
         title,
         content,
         totalSatellite,
-        postedSatellite: [], 
-        errorSatellite: [], 
-        successfulRate: 0 
+        postedSatellite: [],
+        errorSatellite: [],
+        successfulRate: 0
       },
       { new: true }
     );
@@ -91,7 +93,7 @@ const createNewPost = async (req, res) => {
     );
 
     // Cập nhật successfulRate sau khi post xong
-    const successfulRate = progress / totalSatellite;
+    const successfulRate = totalSatellite > 0 ? progress / totalSatellite : 0;
     await Post.findByIdAndUpdate(
       newPost._id,
       { successfulRate },
@@ -109,10 +111,11 @@ const createNewPost = async (req, res) => {
 
 const pushToSatelliteWebsite = async (newPost, siteInfoWithImageUrl, progress = 0, isFirstSatellite = true, isRepost = false) => {
   try {
-    const satellites = await Satellite.find();
+    // Chỉ lấy những satellite có status ACTIVE
+    const satellites = await Satellite.find({ status: 'ACTIVE' });
     if (!satellites.length) {
-      console.warn("⚠️ No satellite sites found in DB.");
-      return [];
+      console.warn("⚠️ No ACTIVE satellite sites found in DB.");
+      return { successfulSatelliteUrls: [], progress };
     }
 
     const queue = getQueue();
@@ -219,8 +222,11 @@ const repostToErrorSatellitesOnePost = async (req, res) => {
 
       return formattedObj[formattedObj.length - 1];
     });
-    const { successfulRate, totalSatellite } = existingPost;
-    const existingProgress = Math.round(successfulRate * totalSatellite);
+    const { successfulRate } = existingPost;
+    // Lấy totalSatellite ACTIVE hiện tại, có thể khác với lúc tạo post
+    const currentTotalActiveSatellite = await Satellite.countDocuments({ status: 'ACTIVE' });
+
+    const existingProgress = currentTotalActiveSatellite > 0 ? Math.round(successfulRate * currentTotalActiveSatellite) : 0;
     const { successfulSatelliteUrls, progress } = await pushToSatelliteWebsite(
       existingPost,
       siteInfoWithImageUrl,
@@ -243,11 +249,14 @@ const repostToErrorSatellitesOnePost = async (req, res) => {
     console.log("remainingErrorSatellites: ", remainingErrorSatellites)
 
     // Cập nhật mảng errorSatellite với những site còn lại
+    const newSuccessfulRate = currentTotalActiveSatellite > 0 ? progress / currentTotalActiveSatellite : 0;
+
     await Post.findByIdAndUpdate(
       existingPost._id,
       {
         errorSatellite: remainingErrorSatellites,
-        successfulRate: progress / totalSatellite
+        successfulRate: newSuccessfulRate,
+        totalSatellite: currentTotalActiveSatellite // Cập nhật lại totalSatellite với số active hiện tại
       },
       { new: true }
     );
