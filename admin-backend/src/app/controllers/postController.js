@@ -78,18 +78,19 @@ const createNewPost = async (req, res) => {
         title,
         content,
         totalSatellite,
+        postedSatellite: [], 
+        errorSatellite: [], 
+        successfulRate: 0 
       },
       { new: true }
-    )
-
-    await newPost.save();
+    );
 
     const { successfulSatelliteUrls, progress } = await pushToSatelliteWebsite(
       newPost,
       siteInfoWithImageUrl
     );
 
-
+    // Cập nhật successfulRate sau khi post xong
     const successfulRate = progress / totalSatellite;
     await Post.findByIdAndUpdate(
       newPost._id,
