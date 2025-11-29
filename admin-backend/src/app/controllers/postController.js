@@ -42,11 +42,10 @@ const trackProgress = async (req, res) => {
 };
 const createNewPost = async (req, res) => {
   try {
-    console.log("req.body: ", req.body);
     const values = req.body.values;
     const siteInfoWithImageUrl = JSON.parse(req.body.siteInfoWithImageUrl);
     let { title, content } = JSON.parse(values);
-    console.log("siteInfoWithImaxgeUrl: ", siteInfoWithImageUrl);
+    console.log("content: ", content)
     // content = `<h2 id="ftoc-heading-1" class="ftwp-heading" data-pm-slice="1 1 []">DIAMOND SKY &ndash; BIỂU TƯỢNG SỐNG CAO CẤP KHU Đ&Ocirc;NG</h2>
     // <p data-pm-slice="1 3 []"><a href="https://diamondskys.com.vn/"><strong>Diamond Sky</strong></a>&nbsp;l&agrave; dự &aacute;n căn hộ cao cấp được quy hoạch v&agrave; ph&aacute;t triển tại trung t&acirc;m phường Hiệp B&igrave;nh, TP.Thủ Đức. Sở hữu thiết kế hiện đại, hệ thống tiện &iacute;ch đẳng cấp v&agrave; vị tr&iacute; v&agrave;ng kế cận quận trung t&acirc;m, Diamond Sky hứa hẹn trở th&agrave;nh t&acirc;m điểm sống đẳng cấp của giới thượng lưu khu Đ&ocirc;ng TP.HCM.</p>
     // <ul data-spread="false">
@@ -149,8 +148,8 @@ const pushToSatelliteWebsite = async (
       const siteMatch = Object.values(siteInfoWithImageUrl).find((site) =>
         satellite.url.includes(new URL(site.url))
       );
-
-      if (!siteMatch) {
+      const siteWithoutImage = satellite.img.length === 0;
+      if (!siteMatch || siteWithoutImage) {
         console.log(`⚠️ Không tìm thấy site tương ứng cho ${satellite.url}`);
         await Post.findByIdAndUpdate(
           newPost._id,
@@ -258,8 +257,6 @@ const repostToErrorSatellitesOnePost = async (req, res) => {
       true
     );
 
-    console.log("successfulSatelliteUrls: ", successfulSatelliteUrls);
-
     // Lọc ra những site error mà không có trong danh sách thành công
     const remainingErrorSatellites = existingPost.errorSatellite.filter(
       (err) => {
@@ -270,8 +267,6 @@ const repostToErrorSatellitesOnePost = async (req, res) => {
         return !isSuccessful;
       }
     );
-
-    console.log("remainingErrorSatellites: ", remainingErrorSatellites);
 
     // Cập nhật mảng errorSatellite với những site còn lại
     const newSuccessfulRate =
@@ -316,7 +311,6 @@ const getErrorPost = async (req, res) => {
     const images = post.imagePath.map(
       (img) => `${process.env.SERVER_URL}/${img}`
     );
-    console.log(images);
     const contentWithImages = replaceImagesInContent(postContent, images);
 
     res.status(200).json({ contentWithImages });

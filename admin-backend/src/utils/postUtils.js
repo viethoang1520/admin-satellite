@@ -2,6 +2,8 @@ const replaceImagesInContent = (content, newImages = []) => {
   try {
     const matches = content.match(/<img[^>]*src=["']([^"']+)["'][^>]*>/g);
 
+    console.log("Matches:", matches)
+    console.log("New Images:", newImages);
     if (!matches || matches.length !== newImages.length) {
       throw new Error("Số ảnh và số link cung cấp không khớp");
     }
