@@ -28,7 +28,8 @@ const postToSatellite = async (satellite, post) => {
       }
     )
   } catch (error) {
-    console.log("lỗi khi gửi wp")
+    console.log("lỗi khi gửi wp", error)
+    throw error
   }
 }
 

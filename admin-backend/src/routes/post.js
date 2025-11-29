@@ -14,7 +14,7 @@ router.get('/', getAllPosts)
 router.get('/error/:id', getErrorPost)
 router.get('/:id', getPostById)
 router.post('/', upload.array("images", 10), createNewPost)
-router.post('/repost', repostToErrorSatellitesOnePost)
+router.post('/repost/:id', repostToErrorSatellitesOnePost)
 router.get('/track-progress', trackProgress)
 
 module.exports = router

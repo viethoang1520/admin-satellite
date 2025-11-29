@@ -12,14 +12,15 @@ const getAllSatellites = async (req, res) => {
 }
 
 // DONE: Add a new satellite
-const addSatellite = (req, res) => {
+const addSatellite = async (req, res) => {
   try {
     console.log("Request Body:", JSON.stringify(req.body, null, 2));
     const { url, username, password } = req.body;
     if (!url) {
       return res.status(400).json({ message: "URL is required" });
     }
-    const existingUrl = Satellite.findOne({ url });
+    const existingUrl = await Satellite.findOne({ url });
+    // console.log("existingUrl: ", existingUrl)
     if (existingUrl) {
       return res.status(400).json({ message: "Satellite URL already exists" });
     }

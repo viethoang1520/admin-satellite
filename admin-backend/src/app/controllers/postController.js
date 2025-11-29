@@ -106,7 +106,7 @@ const createNewPost = async (req, res) => {
 
 
 
-const pushToSatelliteWebsite = async (newPost, siteInfoWithImageUrl, progress = 0, isFirstSatellite = true) => {
+const pushToSatelliteWebsite = async (newPost, siteInfoWithImageUrl, progress = 0, isFirstSatellite = true, isRepost = false) => {
   try {
     const satellites = await Satellite.find();
     if (!satellites.length) {
@@ -121,11 +121,11 @@ const pushToSatelliteWebsite = async (newPost, siteInfoWithImageUrl, progress = 
       if (result?.data?.link) {
         successfulSatelliteUrls.push(result.data.link);
         progress += 1;
-      }
-      if (successfulSatelliteUrls.length !== 0) {
+
+        // Thêm vào mảng postedSatellite thay vì thay thế
         await Post.findOneAndUpdate(
           { _id: newPost._id },
-          { postedSatellite: successfulSatelliteUrls }
+          { $addToSet: { postedSatellite: result.data.link } }
         );
       }
     });
@@ -148,11 +148,15 @@ const pushToSatelliteWebsite = async (newPost, siteInfoWithImageUrl, progress = 
         );
         continue;
       }
-
       let newContent = newPost.content;
 
-      newContent = replaceImagesInContent(newContent, siteMatch.img);
-      console.log("Content sau khi đổi link:", newContent)
+      // Thay thế ảnh khi repost khác với khi đăng bài lần đầu
+      if (!isRepost) {
+        newContent = replaceImagesInContent(newContent, siteMatch.img);
+      } else {
+        const images = newPost.imagePath.map(img => `${process.env.SERVER_URL}/${img}`);
+        newContent = replaceImagesInContent(newContent, images);
+      }
 
       const post = {
         title: newPost.title,
@@ -200,31 +204,64 @@ const pushToSatelliteWebsite = async (newPost, siteInfoWithImageUrl, progress = 
 
 const repostToErrorSatellitesOnePost = async (req, res) => {
   try {
-    const { siteInfoWithImageUrl } = req.body
+    let formattedObj = [];
     const existingPost = await Post.findById(req.params.id)
       .populate('errorSatellite.satelliteId');
+    const errorSitesInfo = existingPost.errorSatellite
+    let siteInfoWithImageUrl = errorSitesInfo.map(site => {
+      formattedObj.push({
+        url: site.satelliteId.url,
+        username: site.satelliteId.username,
+        password: site.satelliteId.password,
+        img: existingPost.imagePath.map(img => `${process.env.SERVER_URL}/${img}`)
+      })
+
+      return formattedObj[formattedObj.length - 1];
+    });
     const { successfulRate, totalSatellite } = existingPost;
     const existingProgress = Math.round(successfulRate * totalSatellite);
     const { successfulSatelliteUrls, progress } = await pushToSatelliteWebsite(
       existingPost,
       siteInfoWithImageUrl,
-      existingProgress
+      existingProgress,
+      true,
+      true
     );
 
-    const errorSatellites = existingPost.errorSatellite.filter(err => {
-      return !successfulSatelliteUrls.includes(err.satelliteId.url.toString());
-    });
-    existingPost.errorSatellite = errorSatellites;
-    const updatedPosts = await existingPost.save();
+    console.log("successfulSatelliteUrls: ", successfulSatelliteUrls)
 
-    const newSuccessfulRate = progress / totalSatellite;
+    // Lọc ra những site error mà không có trong danh sách thành công
+    const remainingErrorSatellites = existingPost.errorSatellite.filter(err => {
+      // Kiểm tra xem URL của satellite có trong danh sách thành công không
+      const isSuccessful = successfulSatelliteUrls.some(successUrl =>
+        err.satelliteId.url.includes(new URL(successUrl).hostname)
+      );
+      return !isSuccessful;
+    });
+
+    console.log("remainingErrorSatellites: ", remainingErrorSatellites)
+
+    // Cập nhật mảng errorSatellite với những site còn lại
     await Post.findByIdAndUpdate(
       existingPost._id,
-      { successfulRate: newSuccessfulRate },
+      {
+        errorSatellite: remainingErrorSatellites,
+        successfulRate: progress / totalSatellite
+      },
       { new: true }
     );
-    return res.status(200).json({ message: "Posts updated successfully", updatedPosts });
+
+    const updatedPost = await Post.findById(existingPost._id)
+      .populate('errorSatellite.satelliteId');
+
+    return res.status(200).json({
+      message: "Posts updated successfully",
+      updatedPost,
+      successfulSatelliteUrls,
+      remainingErrors: remainingErrorSatellites.length
+    });
   } catch (error) {
+    console.log(error)
     return res.status(500).json({ error: error.message });
   }
 }
@@ -240,7 +277,7 @@ const getErrorPost = async (req, res) => {
     const images = post.imagePath.map(img => `${process.env.SERVER_URL}/${img}`);
     console.log(images)
     const contentWithImages = replaceImagesInContent(postContent, images);
-    
+
     res.status(200).json({ contentWithImages });
   } catch (error) {
     res.status(500).json({ error });
