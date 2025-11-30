@@ -1,6 +1,6 @@
 const Satellite = require("../models/Satellite");
 const Post = require("../models/Post");
-
+const Category = require("../models/Category");
 // DONE: Get all satellites
 const getAllSatellites = async (req, res) => {
   try {
@@ -15,16 +15,38 @@ const getAllSatellites = async (req, res) => {
 const addSatellite = async (req, res) => {
   try {
     console.log("Request Body:", JSON.stringify(req.body, null, 2));
-    const { url, username, password } = req.body;
+    const { url, username, password, category } = req.body;
+
     if (!url) {
       return res.status(400).json({ message: "URL is required" });
     }
+
     const existingUrl = await Satellite.findOne({ url });
-    // console.log("existingUrl: ", existingUrl)
     if (existingUrl) {
-      return res.status(400).json({ message: "Satellite URL already exists" });
+      return res.status(400).json({ message: "Website vệ tinh đã tồn tại" });
     }
-    const newSatellite = new Satellite({ url, username, password });
+
+    // Validate categories if provided
+    if (category && category.length > 0) {
+      const validCategories = await Category.find({
+        _id: { $in: category },
+        status: 'ACTIVE'
+      });
+
+      if (validCategories.length !== category.length) {
+        return res.status(400).json({
+          message: "One or more categories are invalid or inactive"
+        });
+      }
+    }
+
+    const newSatellite = new Satellite({
+      url,
+      username,
+      password,
+      category: category || []
+    });
+
     newSatellite
       .save()
       .then((satellite) => res.status(201).json({ satellite }))
