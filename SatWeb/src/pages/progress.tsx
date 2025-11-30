@@ -21,6 +21,7 @@ interface Site {
   updatedAt: Date;
   url: string;
   msg: string;
+  id_repost?: string;
 }
 
 const ProgressPage = () => {
@@ -38,13 +39,13 @@ const ProgressPage = () => {
   const location = useLocation();
   const post = location.state?.post;
   const newPost = location.state?.newPost;
-
   const realPost = useMemo(() => {
     return posts.find((p) => p._id === newPost?._id) || post;
   }, [posts, newPost, post, satellites]);
 
   const [realPostv2, setRealPostv2] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     getPost();
   }, [satellites]);
@@ -90,6 +91,7 @@ const ProgressPage = () => {
         updatedAt: new Date(),
         url: err.url,
         msg: getErrorMessage(err.errorCode),
+        id_repost: realPostv2._id,
       })),
     ];
 
@@ -135,14 +137,21 @@ const ProgressPage = () => {
 
   const handleRepost = async (id) => {
     toast.info("Đang gửi lại bài viết...");
+
     const result = await rePost(id);
+
     if (result) {
       toast.success("Đã gửi lại bài viết thành công!");
-      await getPost();
+
+      const updated = await getPostById(realPost._id);
+      if (updated) {
+        setRealPostv2(updated);
+      }
     } else {
       toast.error("Gửi lại bài viết thất bại.");
     }
   };
+
   const SitesList = ({ sites }: { sites: Site[] }) => (
     <div className="space-y-4">
       {sites.length === 0 ? (
@@ -179,7 +188,7 @@ const ProgressPage = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleRepost(site.id)}
+                onClick={() => handleRepost(site.id_repost)}
               >
                 Đăng lại
               </Button>

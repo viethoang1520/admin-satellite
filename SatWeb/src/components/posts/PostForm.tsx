@@ -78,8 +78,12 @@ const PostForm = ({
       img: [] as string[],
     };
   });
-  console.log("storeImgTemp", storeImgTemp);
   const siteInfoWithImageUrl = useRef<SatelliteAccount[]>([...storeImgTemp]);
+
+  useEffect(() => {
+    siteInfoWithImageUrl.current = [...storeImgTemp];
+  }, [satellites]);
+
   useEffect(() => {
     const filtered = satellites
       .filter((site) => selectedSites.includes(site._id))
@@ -93,15 +97,11 @@ const PostForm = ({
       }));
 
     siteInfoWithImageUrl.current = filtered;
-  }, [selectedSites, satellites]);
+  }, [selectedSites]);
 
   useEffect(() => {
     getSatellite();
   }, []);
-
-  useEffect(() => {
-    console.log("image", images);
-  }, [images]);
 
   // useEffect(() => {
   //   async function runCheck() {
@@ -111,10 +111,6 @@ const PostForm = ({
 
   //   runCheck();
   // }, [satellites]);
-
-  useEffect(() => {
-    siteInfoWithImageUrl.current = [...storeImgTemp];
-  }, [satellites]);
 
   const defaultValues: FormValues = initialValues || {
     title: "",
@@ -138,7 +134,7 @@ const PostForm = ({
       percent: 10,
     });
 
-    const fakeStep = async (message: string, percent: number, delay = 1000) => {
+    const fakeStep = async (message: string, percent: number, delay = 3000) => {
       let icon, color;
       if (percent < 20) {
         icon = "";
@@ -163,13 +159,12 @@ const PostForm = ({
           </div>
         ),
         type: "info",
-        autoClose: 3000,
+        autoClose: 4000,
       });
 
       await new Promise((res) => setTimeout(res, delay));
     };
 
-    // ⚙️ Gọi từng bước
     await fakeStep("Đang xử lý nội dung bài viết...", 25);
     await fakeStep("Đang tải ảnh và dữ liệu...", 45);
     await fakeStep("Gửi yêu cầu đến máy chủ...", 65);
@@ -177,7 +172,6 @@ const PostForm = ({
     try {
       const url = `${import.meta.env.VITE_API_BASE_URL}/api/post`;
       const formData = new FormData();
-
       formData.append("values", JSON.stringify(values));
       formData.append(
         "siteInfoWithImageUrl",
@@ -190,14 +184,6 @@ const PostForm = ({
         method: "POST",
         body: formData,
       });
-      // const response = await fetch(url, {
-      //   method: "POST",
-      //   body: {
-      //     values,
-      //     siteInfoWithImageUrl: siteInfoWithImageUrl.current,
-      //     images: images,
-      //   },
-      // });
       const data = await response.json();
       const { newPost } = data;
       if (data.successfulSatelliteUrls.length === 0) {
@@ -206,8 +192,7 @@ const PostForm = ({
         });
       }
       addPost(newPost);
-      //onSubmit(newPost);
-      navigate("/progress", { state: { post: newPost } });
+      navigate("/progress", { state: { newPost: newPost } });
       return newPost;
     } catch (error) {
       toast.dismiss(toastId);
@@ -221,7 +206,6 @@ const PostForm = ({
   const uploadImageToMultipleWordPress = async (file: File) => {
     setImages((prev) => [...prev, file]);
     const uploadPromises = siteInfoWithImageUrl.current.map(async (site) => {
-      console.log("Uploading to:", site.url);
       let count = 0;
       const url = `${site.url}wp-json/wp/v2/media`;
       const appPassword = site.password.replace(/\s+/g, "");
@@ -231,7 +215,6 @@ const PostForm = ({
       try {
         let data = null;
         const check = await fetch(url, { method: "HEAD" });
-        console.log("Check response:", check);
         if (check.ok) {
           const res = await fetch(url, {
             method: "POST",
@@ -256,7 +239,6 @@ const PostForm = ({
         }
         return { link: data?.source_url };
       } catch (error) {
-        console.error("Upload error:", error);
         toast.error(`Upload ảnh lên ${site.url} thất bại!`);
         return null;
       }
@@ -282,7 +264,6 @@ const PostForm = ({
             : [];
 
           if (validResults.length === 0) {
-            console.warn("Không có site nào upload thành công.");
             alert("Không thể upload ảnh lên bất kỳ site nào.");
             return;
           }
@@ -301,6 +282,35 @@ const PostForm = ({
 
   return (
     <div className="space-y-4">
+      {/* <div className="space-y-2">
+        <h1 className=" text-blue-600 text-xl font-bold m-4">
+          Chọn các site để đăng bài
+        </h1>
+        {satellites.map((site) => {
+          const checked = selectedSites.includes(site._id);
+
+          return (
+            <label
+              key={site._id}
+              className="flex items-center gap-2 p-2 border rounded cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                checked={checked}
+                onChange={() => {
+                  setSelectedSites((prev) =>
+                    checked
+                      ? prev.filter((id) => id !== site._id)
+                      : [...prev, site._id]
+                  );
+                }}
+              />
+
+              <span className="text-sm">{site.url}</span>
+            </label>
+          );
+        })}
+      </div> */}
       {showMetrics && (
         <PerformanceDisplay metrics={metrics} onClear={clearMetrics} />
       )}
@@ -378,7 +388,6 @@ const PostForm = ({
                           const urls = await uploadImageToMultipleWordPress(
                             file
                           );
-                          console.log("Uploaded URLs:", urls);
                           const valid = Array.isArray(urls)
                             ? urls.filter((r) => r && r.link)
                             : [];
@@ -409,35 +418,6 @@ const PostForm = ({
                 </FormItem>
               )}
             />
-            <div className="space-y-2">
-              <h1 className=" text-blue-600 text-xl font-bold m-4">
-                Chọn các site để đăng bài
-              </h1>
-              {satellites.map((site) => {
-                const checked = selectedSites.includes(site._id);
-
-                return (
-                  <label
-                    key={site._id}
-                    className="flex items-center gap-2 p-2 border rounded cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => {
-                        setSelectedSites((prev) =>
-                          checked
-                            ? prev.filter((id) => id !== site._id)
-                            : [...prev, site._id]
-                        );
-                      }}
-                    />
-
-                    <span className="text-sm">{site.url}</span>
-                  </label>
-                );
-              })}
-            </div>
 
             <div className="flex justify-between items-center space-x-2 pt-4 border-t">
               <Button

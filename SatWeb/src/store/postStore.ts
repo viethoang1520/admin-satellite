@@ -125,7 +125,11 @@ const postStore = create<PostStore>()(
             withCredentials: true,
           });
           if (res.status === 200) {
-            return res.data;
+            if (!(res.data.successfulSatelliteUrls.length > 0)) {
+              throw new Error("No successful satellite URLs returned.");
+            } else {
+              return res.data;
+            }
           }
         } catch (error: any) {
           console.error(
