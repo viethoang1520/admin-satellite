@@ -224,7 +224,6 @@ const PostForm = ({
 
           if (!res.ok) {
             toast.error(`Upload ảnh lên ${site.url} thất bại!`);
-            toast.error(`số trang thất bại là ${++count}`);
             return null;
           }
           data = await res.json();
