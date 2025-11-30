@@ -184,7 +184,7 @@ const ProgressPage = () => {
                 )}
               </div>
             </div>
-            {site.status === "failed" && (
+            {/* {site.status === "failed" && (
               <Button
                 variant="outline"
                 size="sm"
@@ -192,7 +192,7 @@ const ProgressPage = () => {
               >
                 Đăng lại
               </Button>
-            )}
+            )} */}
           </div>
         ))
       )}
@@ -214,12 +214,12 @@ const ProgressPage = () => {
               </p>
             </div>
             <Button
-              onClick={restartPublishing}
+              onClick={() => handleRepost(realPostv2._id)}
               variant="outline"
               className="flex items-center bg-black text-white gap-2"
             >
               <RefreshCw className="h-4 w-4" />
-              Refresh
+              Đăng lại bài viết
             </Button>
           </div>
           {/* Selected Post */}
